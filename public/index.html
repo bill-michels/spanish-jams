@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Grateful Dead Archive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+  <div class="wrap" style="text-align:center;">
+    <h1>Spanish Jams</h1>
+  </div>
+</header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="guess">Guess the Year</button>
+    <button class="tab-btn" data-tab="listen">Just Listen to Shows</button>
+  </nav>
+
+  <main class="tab-container">
+  <!-- Guess the Year -->
+<section class="panel tab-panel active" id="tab-guess">
+  <div class="panel-body">
+    <div class="control-row" style="text-align:center;">
+      <button id="playBtn" type="button">Play the Jam</button>
+    </div>
+
+    <!-- Keep this element, but it can be empty -->
+    <div id="gameStatus" class="note" aria-live="polite" style="min-height:1em;"></div>
+
+    <div style="margin-top:10px;">
+      <audio id="jamAudio" controls style="width:100%; display:none;"></audio>
+    </div>
+
+<h4 style="margin:14px 0 8px; text-align:center;">Choose a Year</h4>
+    <div id="yearGuess" class="years years-guess"></div>
+
+    <div id="answer" style="margin-top:12px; display:none;"></div>
+  </div>
+</section>
+
+    <!-- Listen to Shows -->
+    <section class="panel tab-panel" id="tab-listen">
+      <div class="panel-head">
+        <div class="tab-title">Just Listen to Shows</div>
+      </div>
+      <div class="panel-body">
+        <p class="note">Search by date (<code>1977-05-08</code>), venue (<code>Fillmore</code>), or anything else — or browse by year.</p>
+
+        <form action="/search" method="GET" class="control-row">
+          <input type="text" name="q" placeholder="Try: Fillmore or 1977-05-08" />
+          <button type="submit">Search</button>
+          <a class="link" href="/search">Show All</a>
+        </form>
+
+        <h3>Browse by Year</h3>
+        <div class="years">
+          <!-- Years 1966-1995 -->
+          ${Array.from({ length: 30 }, (_, i) => {
+            const y = 1966 + i;
+            return `<a href="/year/${y}">${y}</a>`;
+          }).join('')}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Load game logic FIRST -->
+  <script src="/game.js"></script>
+  <script>
+    // Tab switching logic
+    const tabs = document.querySelectorAll(".tab-btn");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        panels.forEach(p => p.classList.remove("active"));
+
+        tab.classList.add("active");
+        document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>
