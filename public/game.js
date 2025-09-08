@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let guessCount = 0;     // 0..3
   let round = 0;          // increments each time Play is clicked
   const MAX_GUESSES = 3;
+  let roundOver = false;  // true once a round ends (win or out of guesses)
 
   // ------- Utilities
   function setButtonsEnabled(enabled) {
@@ -31,6 +32,92 @@ document.addEventListener("DOMContentLoaded", () => {
     return raw.replace(/^Grateful Dead Live at\s*/i, "");
   }
 
+  function renderTracksUnderAnswer(tracks) {
+  if (!Array.isArray(tracks) || tracks.length === 0) {
+    answerEl.innerHTML += `<p class="note" style="margin-top:6px;">No track list available.</p>`;
+    return;
+  }
+  const list = document.createElement("ol");
+  list.style.paddingLeft = "20px";
+  list.style.marginTop = "8px";
+
+  tracks.forEach(t => {
+    const li = document.createElement("li");
+    li.style.margin = "6px 0";
+    const label = t.title || t.name;
+    const len = t.length ? ` <span style="color:#9ca3af;">(${t.length})</span>` : "";
+    li.innerHTML = `<a href="#" data-url="${t.url}" class="gt-play">${label}</a>${len}`;
+    list.appendChild(li);
+  });
+
+  answerEl.appendChild(list);
+
+   // click to play in the same jamAudio element
+  Array.from(answerEl.querySelectorAll(".gt-play")).forEach(a => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const url = a.getAttribute("data-url");
+      if (!url) return;
+      try { jamAudio.pause(); } catch {}
+      jamAudio.src = url;
+      jamAudio.load();
+      jamAudio.play().catch(()=>{});
+      jamAudio.style.display = "block";
+    });
+  });
+} // <- closes renderTracksUnderAnswer
+function renderShowBottom(show) {
+  const panel = document.getElementById("bottom-show");
+  const body  = document.getElementById("bottom-show-body");
+  if (!panel || !body) return;
+
+  const meta   = show.meta || show; // support either shape
+  const title  = cleanShowTitle(meta.title, meta.date, meta.venue);
+  const when   = meta.date ? new Date(meta.date).toDateString() : "";
+  const where  = [meta.venue, meta.location].filter(Boolean).join(" • ");
+  const tracks = show.tracks || [];
+
+  let html = `
+    <div style="margin-bottom:10px;">
+      <strong>${title}</strong>
+      ${where ? `<div class="note">${where}</div>` : ""}
+      ${when  ? `<div class="note">${when}</div>` : ""}
+    </div>
+  `;
+
+  if (tracks.length) {
+    html += `<ol style="padding-left:20px;">`;
+    tracks.forEach(t => {
+      const label = t.title || t.name;
+      const len   = t.length ? ` <span style="color:#9ca3af;">(${t.length})</span>` : "";
+      html += `<li style="margin:6px 0;">
+        <a href="#" data-url="${t.url}" class="bottom-play">${label}</a>${len}
+      </li>`;
+    });
+    html += `</ol>`;
+  } else {
+    html += `<p class="note">No track list available.</p>`;
+  }
+
+  body.innerHTML = html;
+  panel.style.display = "block";
+
+  // click-to-play in the same audio element
+  Array.from(body.querySelectorAll(".bottom-play")).forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const url = link.getAttribute("data-url");
+      if (!url) return;
+      try { jamAudio.pause(); } catch {}
+      jamAudio.src = url;
+      jamAudio.load();
+      jamAudio.play().catch(()=>{});
+      jamAudio.style.display = "block";
+    });
+  });
+}
+
+
   // Build year buttons 1966..1995 (once)
   if (yearGrid.children.length === 0) {
     for (let y = 1966; y <= 1995; y++) {
@@ -43,22 +130,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initial UI
+setButtonsEnabled(false);
+jamAudio.style.display = "none";
+answerEl.style.display = "none";
+
+// ------- Core: load a random clip (stable)
+function loadRandomClip() {
+  const myRound = ++round;
+  roundOver = false;                     // round is active again
+  playBtn.disabled = true;               // disable only while loading
   setButtonsEnabled(false);
-  jamAudio.style.display = "none";
+  clearUsedMarks();
+
+  // Hide/clear the bottom panel for a fresh round
+  const bottom = document.getElementById("bottom-show");
+  const bottomBody = document.getElementById("bottom-show-body");
+  if (bottom && bottomBody) {
+    bottom.style.display = "none";
+    bottomBody.innerHTML = "";
+  }
+
+  statusEl.textContent = "Picking a random show and track…";
   answerEl.style.display = "none";
-
-  // ------- Core: load a random clip (stable)
-  function loadRandomClip() {
-    const myRound = ++round;
-    playBtn.disabled = true;               // disable only while loading
-    setButtonsEnabled(false);
-    clearUsedMarks();
-
-    statusEl.textContent = "Picking a random show and track…";
-    answerEl.style.display = "none";
-    answerEl.textContent = "";
-    guessCount = 0;
-    current = null;
+  answerEl.textContent = "";
+  guessCount = 0;
+  current = null;
 
     // Hard reset audio so old events/buffers can't leak
     try { jamAudio.pause(); } catch (_) {}
@@ -140,6 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
   yearGrid.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn || btn.disabled) return;
+    if (roundOver) {
+      statusEl.textContent = "This round is over. Click “Play the Jam” to start another round.";
+      btn.blur();
+      return;
+    }
     if (!current || !current.date) return;
 
     const guess = parseInt(btn.dataset.year, 10);
@@ -152,55 +253,100 @@ document.addEventListener("DOMContentLoaded", () => {
     if (guess === correct) {
       onWin();
     } else if (guessCount < MAX_GUESSES) {
-      statusEl.textContent = `❌ Guess ${guessCount} wrong. Try again — ${MAX_GUESSES - guessCount} left.`;
+      statusEl.textContent = `Guess ${guessCount} wrong. Try again — ${MAX_GUESSES - guessCount} left.`;
     } else {
       onOutOfGuesses(correct);
     }
   });
 
   function onWin() {
-    setButtonsEnabled(false);
-    statusEl.textContent = `✅ You nailed it on guess ${guessCount}!`;
+  roundOver = true;                        // lock the round
+  setButtonsEnabled(false);
+  statusEl.textContent = `You nailed it on guess ${guessCount}!`;
 
-    const showTitle = cleanShowTitle(current.title, current.date, current.venue);
-    const trackName = (current.file && (current.file.title || current.file.name)) || "";
+  const showTitle = cleanShowTitle(current.title, current.date, current.venue);
+  const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
-    answerEl.style.display = "block";
-    answerEl.innerHTML = `
-      <div style="margin-top:6px;">
-        <strong>${showTitle}</strong>
-        ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
-        <div style="margin-top:6px;">
-          <a href="#" id="exploreLink">Explore this show</a>
-        </div>
-      </div>
-    `;
+  answerEl.style.display = "block";
+  answerEl.innerHTML = `
+    <div style="margin-top:6px;">
+      <strong>${showTitle}</strong>
+      ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
+    </div>
+  `;
 
-    const link = document.getElementById("exploreLink");
-    if (link) link.addEventListener("click", (e) => { e.preventDefault(); exploreExactShow(); });
+  // Render track list under the answer
+  if (current?.identifier) {
+    fetch(`/api/show/${encodeURIComponent(current.identifier)}`)
+      .then(r => r.json())
+      .then(show => {
+        if (show && !show.error) {
+          renderTracksUnderAnswer(show.tracks || []);
+// renderShowBottom(show); // disabled to avoid duplicate list
+        } else {
+          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+        }
+      })
+      .catch(() => {
+        answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+      });
+// Award points only if won within 3 guesses: 1st → 3, 2nd → 2, 3rd → 1
+let pts = 0;
+if (guessCount === 1) pts = 3;
+else if (guessCount === 2) pts = 2;
+else if (guessCount === 3) pts = 1;
+
+console.log("[CLIENT] scoring win", { guessCount, pts });
+fetch("/api/score", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points: pts })
+}).then(() => {
+  if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
+}).catch(()=>{});
   }
+}
 
-  function onOutOfGuesses(correctYear) {
-    setButtonsEnabled(false);
-    statusEl.textContent = `❌ Out of guesses. The correct year was ${correctYear}.`;
+function onOutOfGuesses(correctYear) {
+  roundOver = true;                        // lock the round
+  setButtonsEnabled(false);
+  statusEl.textContent = `Out of guesses. The correct year was ${correctYear}.`;
 
-    const showTitle = cleanShowTitle(current.title, current.date, current.venue);
-    const trackName = (current.file && (current.file.title || current.file.name)) || "";
+  const showTitle = cleanShowTitle(current.title, current.date, current.venue);
+  const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
-    answerEl.style.display = "block";
-    answerEl.innerHTML = `
-      <div style="margin-top:6px;">
-        <strong>${showTitle}</strong>
-        ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
-        <div style="margin-top:6px;">
-          <a href="#" id="exploreLink">Explore this show</a>
-        </div>
-      </div>
-    `;
+  answerEl.style.display = "block";
+  answerEl.innerHTML = `
+    <div style="margin-top:6px;">
+      <strong>${showTitle}</strong>
+      ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
+    </div>
+  `;
 
-    const link = document.getElementById("exploreLink");
-    if (link) link.addEventListener("click", (e) => { e.preventDefault(); exploreExactShow(); });
+  if (current?.identifier) {
+    fetch(`/api/show/${encodeURIComponent(current.identifier)}`)
+      .then(r => r.json())
+      .then(show => {
+        if (show && !show.error) {
+          renderTracksUnderAnswer(show.tracks || []);
+          // renderShowBottom(show); // disabled to avoid duplicate list
+        } else {
+          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+        }
+      })
+      .catch(() => {
+        answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+      });
+// No points when out of guesses
+fetch("/api/score", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points: 0 })
+}).then(() => {
+  if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
+}).catch(()=>{});
   }
+}
 
   // ------- Right panel rendering helpers
   function restoreRightPanel() {
@@ -260,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(r => r.json())
       .then(show => {
         if (show.error) throw new Error(show.error);
-        renderShowRight(show);
+        renderShowBottom(show);
       })
       .catch(err => {
         console.error(err);

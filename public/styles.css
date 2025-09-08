@@ -107,6 +107,12 @@ h1 {
   padding: 16px;
 }
 
+/* Center all status messages under the Play button */
+#gameStatus {
+  text-align: center;
+  margin-top: 8px;
+}
+
 .tab-panel {
   display: none;
 }
@@ -150,7 +156,6 @@ button:disabled {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: 8px;
-  margin-top: 8px;
 }
 
 .years a,
@@ -197,4 +202,68 @@ ol {
 
 ol li {
   margin: 6px 0;
+}
+/* Guess-the-Year grid: highlight chosen years */
+.years-guess button.used {
+  background: #001f3f;   /* solid navy */
+  color: #ccc;           /* light grey text */
+  border-color: #001a34;
+  box-shadow: none;
+}
+
+/* Optional: clearer hover vs chosen */
+.years-guess button:hover:not(.used) {
+  background: #404040;
+}
+/* Force 6 columns for the Guess-the-Year grid */
+.years-guess {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+/* Make buttons a touch taller for a neat 5-row block */
+.years-guess button {
+  padding: 10px 0;
+}
+
+/* Force bottom-panel track links to use muted gray color */
+#bottom-show .bottom-play,
+#bottom-show .bottom-play:visited {
+  color: #9ca3af !important; /* force the gray color */
+  text-decoration: none;
+}
+
+#bottom-show .bottom-play:hover {
+  color: #d1d5db !important; /* lighter gray on hover */
+  text-decoration: underline;
+}
+/* Answer panel track links (under the guess result) */
+#answer .gt-play,
+#answer .gt-play:visited {
+  color: #9ca3af !important;    /* same muted gray as time/meta */
+  text-decoration: none;
+}
+
+#answer .gt-play:hover {
+  color: #d1d5db !important;     /* lighter gray on hover */
+  text-decoration: underline;
+}
+
+/* Bottom panel track links (already added earlier, but keep here for completeness) */
+#bottom-show .bottom-play,
+#bottom-show .bottom-play:visited {
+  color: #9ca3af !important;
+  text-decoration: none;
+}
+
+#bottom-show .bottom-play:hover {
+  color: #d1d5db !important;
+  text-decoration: underline;
+}
+/* Force 6 columns for the Listen tab year grid */
+.years-browse {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
 }
