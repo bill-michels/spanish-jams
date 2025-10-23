@@ -2,16 +2,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // ------- Elements
   const playBtn  = document.getElementById("playBtn");
   const jamAudio = document.getElementById("jamAudio");
-  const statusEl = document.getElementById("gameStatus");
-  const answerEl = document.getElementById("answer");
-  const yearGrid = document.getElementById("yearGuess");
+  const statusEl = document.getElementById("statusEl");
+  const answerEl = document.getElementById("answerEl");
+  const yearGrid = document.getElementById("yearGrid");
+  const signInStatusEl = document.getElementById("signInStatusEl");
   const listenPanelBody = document.querySelector("#tab-listen .panel-body");
   const rightOriginalHTML = listenPanelBody ? listenPanelBody.innerHTML : "";
 
+console.log("playBtn element:", playBtn);
+console.log("jamAudio element:", jamAudio);
+
   if (!playBtn || !jamAudio || !statusEl || !answerEl || !yearGrid) {
     console.error("Required elements missing. Check index.html IDs.");
-    return;
+    return; // safe to return here because we are inside DOMContentLoaded handler
   }
+
+// Auto-start logic removed: inline transport + loadRandomClip() are triggered from the guarded Play button listener below.
 
   // ------- State (declare ONCE)
   let current = null;     // {identifier,date,title,venue,location,file?,url}
@@ -163,13 +169,21 @@ function loadRandomClip() {
     jamAudio.oncanplay = null;
 
     fetch("/api/random-clip")
-      .then(r => r.json())
+  .then(async r => {
+    console.log('[load] /api/random-clip status', r.status);
+    const data = await r.json().catch(err => {
+      console.error('[load] JSON parse error', err);
+      return { error: 'bad_json' };
+    });
+    return data;
+  })
       .then(data => {
         if (myRound !== round) return;                  // stale response, ignore
         if (data.error) throw new Error(data.error);
 
         current = data;
-
+  console.log('[load] api data', current);
+        
         // Safety: make sure we actually have a URL
         if (!current || !current.url) {
           console.error("No playable URL in /api/random-clip response:", current);
@@ -208,7 +222,9 @@ function loadRandomClip() {
             }
           } catch {/* ignore parse issues */}
 
-          jamAudio.play().catch(()=>{});
+          jamAudio.play().catch(err => {
+  console.error('[audio] play() failed', err);
+});
           statusEl.textContent = "Guess 1 of 3: Pick a year.";
           jamAudio.style.display = "block";
           setButtonsEnabled(true);
@@ -225,12 +241,21 @@ function loadRandomClip() {
       });
   }
 
+// Expose a global starter for round kickoff
+window.startRound = function(){ console.log('[round] startRound() called'); loadRandomClip(); };
+
   // Single, clean listener (no delegated fallback)
-  playBtn.disabled = false;
-  playBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    loadRandomClip();
-  });
+playBtn.disabled = false;
+playBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  const st = (playBtn.dataset && playBtn.dataset.state) ? playBtn.dataset.state : 'idle';
+  // Allow start when idle OR when the inline transport just set it to 'loading'
+  if (st !== 'idle' && st !== 'loading') {
+    return; // pause/resume handled by inline transport
+  }
+  console.log('[click] starting round from game.js, state =', st);
+  loadRandomClip();
+});
 
   // ------- Guess handling (3 guesses with year buttons)
   yearGrid.addEventListener("click", (e) => {
@@ -304,6 +329,7 @@ fetch("/api/score", {
 }).then(() => {
   if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
 }).catch(()=>{});
+if (window.resetPlayButton) window.resetPlayButton();
   }
 }
 
@@ -345,6 +371,7 @@ fetch("/api/score", {
 }).then(() => {
   if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
 }).catch(()=>{});
+if (window.resetPlayButton) window.resetPlayButton();
   }
 }
 

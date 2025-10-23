@@ -9,6 +9,7 @@ const express = require("express");
 const cookieSession = require("cookie-session");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcryptjs");
+const rateLimit = require('express-rate-limit');
 
 // Node 18+ has global fetch (your Node is v22.x), so no polyfill needed.
 
@@ -18,11 +19,14 @@ const PORT = process.env.PORT || 3000;
 // ---------- Sessions ----------
 app.use(cookieSession({
   name: "sj_session",
-  secret: "replace-with-a-long-random-key",
+  keys: (process.env.SESSION_SECRETS || "replace-with-a-long-random-key").split(","),
   httpOnly: true,
   sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
   maxAge: 1000 * 60 * 60 * 24 * 30
 }));
+// If behind a proxy/edge (Vercel/Render/Nginx), trust it so secure cookies work:
+app.set("trust proxy", 1);
 
 // ---------- Static files ----------
 app.use(express.static(path.join(__dirname, "public")));
@@ -40,6 +44,7 @@ db.prepare(`
     password TEXT NOT NULL
   )
 `).run();
+// Note: usernames are normalized to lowercase in code for consistent lookups.
 
 db.prepare(`
   CREATE TABLE IF NOT EXISTS scores (
@@ -65,6 +70,14 @@ const topLeaderboard = db.prepare(`
   ORDER BY total_points DESC, games DESC, name ASC
   LIMIT 20
 `);
+
+// ---------- Rate limiting for auth endpoints ----------
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,                  // limit each IP to 100 auth requests per window
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // ---------- Root -> index.html ----------
 app.get("/", (_req, res) => {
@@ -188,19 +201,28 @@ app.get("/api/show/:id", async (req, res) => {
 });
 
 // ---------- Auth (username + password) ----------
-app.post("/api/register", express.json(), async (req, res) => {
+app.post("/api/register", authLimiter, express.json(), async (req, res) => {
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) {
+    let { username, password } = req.body || {};
+    if (typeof username !== "string" || typeof password !== "string") {
       return res.status(400).json({ error: "Username and password required" });
     }
+    const uname = username.trim().toLowerCase();
+    if (uname.length < 3 || uname.length > 24) {
+      return res.status(400).json({ error: "Username must be 3–24 characters" });
+    }
+    if (password.length < 6 || password.length > 128) {
+      return res.status(400).json({ error: "Password must be 6–128 characters" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     try {
-      const info = createUser.run(username, hashed);
+      const info = createUser.run(uname, hashed);
       req.session.userId = info.lastInsertRowid;
-      res.json({ success: true, user: { id: info.lastInsertRowid, username } });
+      res.json({ success: true, user: { id: info.lastInsertRowid, username: uname } });
     } catch (e) {
+      // Unique constraint race or existing user
       return res.status(409).json({ error: "Username already taken" });
     }
   } catch (e) {
@@ -209,14 +231,21 @@ app.post("/api/register", express.json(), async (req, res) => {
   }
 });
 
-app.post("/api/login", express.json(), async (req, res) => {
+app.post("/api/login", authLimiter, express.json(), async (req, res) => {
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) {
+    let { username, password } = req.body || {};
+    if (typeof username !== "string" || typeof password !== "string") {
       return res.status(400).json({ error: "Username and password required" });
     }
+    const uname = username.trim().toLowerCase();
+    if (uname.length < 3 || uname.length > 24) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+    if (password.length < 6 || password.length > 128) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
 
-    const user = getUserByName.get(username);
+    const user = getUserByName.get(uname);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, user.password);
@@ -231,11 +260,22 @@ app.post("/api/login", express.json(), async (req, res) => {
 });
 
 app.get("/api/me", (req, res) => {
-  const id = req.session.userId;
-  if (!id) return res.json({ user: null });
-  const user = getUserById.get(id);
-  if (!user) return res.json({ user: null });
-  res.json({ user: { id: user.id, username: user.username, name: user.username } });
+  try {
+    const id = req.session?.userId;
+    console.log("/api/me → session.userId =", id);
+    if (!id) {
+      return res.json({ user: null });
+    }
+    const user = getUserById.get(id);
+    if (!user) {
+      console.log(`/api/me → no user found for id ${id}`);
+      return res.json({ user: null });
+    }
+    res.json({ user: { id: user.id, username: user.username, name: user.username } });
+  } catch (err) {
+    console.error("/api/me failed:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 app.post("/api/logout", (req, res) => {
@@ -252,12 +292,19 @@ app.post("/api/score", express.json(), (req, res) => {
   if (!Number.isFinite(points) || points < 0) points = 0;
   if (points > 100) points = 100;
   insertScore.run(id, points);
-  res.json({ ok: true });
+  const user = getUserById.get(id);
+  res.json({ ok: true, score: { username: user?.username || 'you', points } });
 });
 
 app.get("/api/leaderboard", (_req, res) => {
   const rows = topLeaderboard.all();
-  res.json({ leaders: rows });
+  // Normalize to the shape the frontend expects: { leaderboard: [{ username, points, games }] }
+  const leaderboard = rows.map(r => ({
+    username: r.name,
+    points: r.total_points,
+    games: r.games
+  }));
+  res.json({ leaderboard });
 });
 
 // ---------- Simple browse (HTML pages for dev convenience) ----------
