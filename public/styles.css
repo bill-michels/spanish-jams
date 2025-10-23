@@ -1,6 +1,6 @@
 :root {
-  --bg: #1f1f1f;
-  --card: #2b2b2b;
+  --bg: #F0E6EF;
+  --card: #B8BEDD;
   --ink: #f9f9f9;
   --muted: #b0b0b0;
   --line: #3a3a3a;
@@ -266,4 +266,80 @@ ol li {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+}
+
+/* 🎵 Play Button styling */
+.btn {
+  font-size: var(--btn-font-size);
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  border-radius: var(--btn-radius);
+  box-shadow: var(--btn-shadow);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+}
+
+.btn-primary:hover {
+  background: var(--btn-primary-hover-bg);
+  transform: scale(1.03);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.play-wrap {
+  margin-block: var(--cta-margin-block);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔒 Hide native audio element UI (we drive UI via the button) */
+#jamAudio {
+  display: none !important;
+  width: 0;
+  height: 0;
+}
+
+/* ⏯ Expand button slightly in transport states */
+.btn[data-state="playing"],
+.btn[data-state="paused"] {
+  padding-top: calc(var(--btn-padding-y) * 1.1);
+  padding-bottom: calc(var(--btn-padding-y) * 1.1);
+}
+
+/* 🎛️ Inline labels inside the button */
+.btn .label-loading {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.btn .label-playing {
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+}
+/* --- Play button state visibility hardening --- */
+[hidden] { display: none !important; }
+
+/* Layout for the time/transport block when it is shown */
+#playBtn .label-playing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Never show the time/transport in Default, Loading, or Reset */
+#playBtn[data-state="idle"] .label-playing,
+#playBtn[data-state="loading"] .label-playing,
+#playBtn[data-state="reset"] .label-playing {
+  display: none !important;
 }
