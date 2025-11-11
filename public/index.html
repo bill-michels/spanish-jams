@@ -8,70 +8,105 @@
   <link rel="stylesheet" href="/Styles/tokens.css" />
   <link rel="stylesheet" href="/Styles/ui.css" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    .top-row {
+      align-items: flex-start;
+      gap: var(--space-4);
+    }
+    .panel.hero-panel,
+    .panel.auth-panel,
+    .panel.leaderboard-panel {
+      min-height: 36px !important;
+    }
+    .panel.hero-panel {
+      padding-top: 2px !important;
+      padding-bottom: 2px !important;
+    }
+    .panel.leaderboard-panel .panel-body {
+      max-height: 110px;
+      overflow-y: auto;
+    }
+    #fixedHeader {
+      padding-top: 0px;
+      padding-bottom: 0px;
+    }
+    #fixedHeader .play-wrap {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 4px;
+      margin: -6px 0 0 !important;
+      min-height: 20px;
+      width: 100%;
+    }
+    #fixedHeader #statusEl {
+      margin-top: 0 !important;
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <!-- Top row: Auth / Hero / Leaderboard -->
-    <div class="top-row" style="display:flex; justify-content:space-between; gap:var(--space-4);">
-      <section class="panel auth-panel" style="flex:1; min-width:260px;">
-        <div class="panel-head"><div class="tab-title">Sign In Status</div></div>
-        <div class="panel-body">
-          <div id="signInStatusEl" class="note" style="margin-bottom:8px;">Not signed in</div>
-          <div id="authModes" style="display:flex; gap:8px; margin-bottom:8px;">
-            <button id="modeLogin" type="button" onclick="window.showLogin && window.showLogin()">Sign in</button>
-            <button id="modeRegister" type="button" onclick="window.showRegister && window.showRegister()">Register</button>
+  <header id="fixedHeader" style="position:fixed; top:0; left:0; width:100%; background:var(--color-bg, #fff); z-index:1000;">
+    <div class="container header-inner">
+      <div class="top-row">
+        <section id="authPanel" class="panel auth-panel" style="flex:1; min-width:260px;">
+          <div class="panel-head"><div class="tab-title">Sign In</div></div>
+          <div class="panel-body">
+            <div id="signInStatusEl" class="note" style="margin-bottom:8px;"></div>
+            <div id="authLoginPanel" class="auth-login">
+              <form id="authForm" class="auth-form">
+                <div id="authInputs" style="display:block; margin-bottom:8px;">
+                  <label for="authName" style="display:block; font-size:12px; color:#6b7280; margin-bottom:4px;">Username</label>
+                  <input id="authName" class="input" type="text" placeholder="Choose a username" autocomplete="username">
+                  <label for="authPass" style="display:block; font-size:12px; color:#6b7280; margin-bottom:4px;">Password</label>
+                  <input id="authPass" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button id="authContinueBtn" class="btn btn-primary btn-block" type="submit">Continue</button>
+              </form>
+            </div>
+            <div id="authedPanel" class="auth-logged" style="margin-top:4px;">
+              <div style="font-size:0.75rem; opacity:0.8; margin-bottom:2px;">Playing as:</div>
+              <div id="authedUser" style="font-weight:600; margin-bottom:4px;">—</div>
+              <div id="authedScore" style="font-size:0.8rem; margin-bottom:8px;">Score: 0</div>
+              <button id="logoutBtn" class="btn btn-block" type="button">Logout</button>
+            </div>
+            <p id="scoreHint" class="note" style="display:none; margin-top:8px;">Sign in to save your score on the leaderboard.</p>
           </div>
-          <form id="authForm" style="display:none; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-            <div id="nameWrap" style="display:none; flex:1 1 0;">
-              <label for="authName" style="display:block; font-size:12px; color:#6b7280;">Username</label>
-              <input id="authName" type="text" placeholder="Choose a username" autocomplete="username" required style="width:100%; min-width:0; height:40px; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font: inherit; line-height:1.2;" />
-            </div>
-            <div id="passWrap" style="flex:1 1 0;">
-              <label for="authPass" style="display:block; font-size:12px; color:#6b7280;">Password</label>
-              <input id="authPass" type="password" placeholder="••••••••" style="width:100%; min-width:0; height:40px; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font: inherit; line-height:1.2;" autocomplete="current-password" required />
-            </div>
-            <div style="display:flex; gap:8px; justify-content:center; width:100%;">
-              <button id="doLogin" type="button" style="display:none;" onclick="window.doLoginSubmit && window.doLoginSubmit()">Sign in</button>
-              <button id="doRegister" type="button" style="display:none;" onclick="window.doRegisterSubmit && window.doRegisterSubmit()">Create account</button>
-            </div>
-          </form>
-          <div id="signedInControls" style="display:none; margin-top:8px;">
-            <button id="signOutBtn" type="button" onclick="window.doSignOut && window.doSignOut()">Sign Out</button>
+        </section>
+
+        <section class="panel hero-panel" id="heroPanel" style="flex:2; display:flex; align-items:center; justify-content:center;">
+          <h1 id="heroTitle" style="margin:0; padding:8px;">
+            <a href="/" style="color:inherit; text-decoration:none; cursor:pointer;">Mind Left Body Game</a>
+          </h1>
+        </section>
+
+        <section class="panel leaderboard-panel" style="flex:1; min-width:260px;">
+          <div class="panel-head"><div class="tab-title">Leaderboard</div></div>
+          <div class="panel-body" id="leaderboardBody">
+            <p class="note">No scores yet.</p>
           </div>
-          <p id="scoreHint" class="note" style="display:none; margin-top:8px;">Sign in to save your score on the leaderboard.</p>
-        </div>
-      </section>
+        </section>
+      </div>
 
-
-      <section class="panel hero-panel" id="heroPanel" style="flex:2; min-height:220px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border-radius:8px;">
-        <h1 id="heroTitle" style="margin:0; padding:16px;">
-          <a href="/" style="color:inherit; text-decoration:none; cursor:pointer;">Mind Left Body Game</a>
-        </h1>
-      </section>
-
-      <section class="panel leaderboard-panel" style="flex:1; min-width:260px;">
-        <div class="panel-head"><div class="tab-title">Leaderboard</div></div>
-        <div class="panel-body" id="leaderboardBody">
-          <p class="note">No scores yet.</p>
-        </div>
-      </section>
+      <div class="play-wrap">
+        <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
+          <span class="label-default">Play</span>
+          <span class="label-loading" hidden>Find a Jam</span>
+          <span class="label-playing" hidden>
+            <span class="transport" aria-hidden="true">⏯</span>
+            <span class="time"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
+          </span>
+        </button>
+        <button id="playAgainBtn" class="btn btn-secondary" style="margin-left:8px; display:none;">
+          Play
+        </button>
+        <div id="statusEl" class="note"></div>
+        <audio id="jamAudio" preload="auto" crossorigin="anonymous" style="display:none"></audio>
+      </div>
     </div>
+  </header>
 
-    <!-- Play button -->
-    <div class="play-wrap" style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin:var(--space-8) 0;">
-      <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
-        <span class="label-default">Play the Game</span>
-        <span class="label-loading" hidden>Find a Jam</span>
-        <span class="label-playing" hidden>
-          <span class="transport" aria-hidden="true">⏯</span>
-          <span class="time"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
-        </span>
-      </button>
-      <div id="statusEl" class="note" style="margin-top:var(--space-4);"></div>
-      <audio id="jamAudio" preload="auto" crossorigin="anonymous" style="display:none"></audio>
-    </div>
-
-    <!-- Years grid and answers -->
+  <main id="appMain" class="container app-main">
     <section class="panel years-panel" style="margin:var(--space-6) 0;">
       <h4 style="text-align:center; margin:0 var(--space-0) var(--space-4);">Choose a Year</h4>
       <div id="yearGrid" class="years years-guess"></div>
@@ -90,247 +125,7 @@
     </section>
   </main>
 
-  <!-- Inline transport logic for Play button -->
-  <script>
-  (function(){
-    const btn = document.getElementById('playBtn');
-    const audio = document.getElementById('jamAudio');
-    const labDefault = btn.querySelector('.label-default');
-    const labLoading = btn.querySelector('.label-loading');
-    const labPlaying = btn.querySelector('.label-playing');
-    const elapsedEl = document.getElementById('elapsed');
-    const durationEl = document.getElementById('duration');
-    const transportEl = btn.querySelector('.transport');
-
-    function fmt(t){ if(!isFinite(t)) return '0:00'; const m=Math.floor(t/60), s=Math.floor(t%60).toString().padStart(2,'0'); return `${m}:${s}`; }
-    function setState(st){
-      btn.dataset.state = st;
-      labDefault.hidden = st !== 'idle' && st !== 'reset';
-      labLoading.hidden = st !== 'loading';
-      labPlaying.hidden = !(st === 'playing' || st === 'paused');
-      if (st === 'idle') {
-        labDefault.textContent = 'Play the Game';
-        if (transportEl) transportEl.textContent = '';
-        if (elapsedEl) elapsedEl.textContent = '0:00';
-        if (durationEl) durationEl.textContent = '0:00';
-        if (labPlaying) labPlaying.hidden = true;
-      } else if (st === 'reset') {
-        labDefault.textContent = 'Play Again';
-        if (transportEl) transportEl.textContent = '';
-      } else if (st === 'loading') {
-        labLoading.textContent = 'Find a Jam';
-        if (transportEl) transportEl.textContent = '';
-        if (elapsedEl) elapsedEl.textContent = '0:00';
-        if (durationEl) durationEl.textContent = '0:00';
-        if (labPlaying) labPlaying.hidden = true;
-      } else if (st === 'playing') {
-        if (transportEl) transportEl.textContent = 'Pause';
-      } else if (st === 'paused') {
-        if (transportEl) transportEl.textContent = 'Resume';
-      }
-    }
-
-    let rafId = null;
-    function tick(){ elapsedEl.textContent = fmt(audio.currentTime); rafId = requestAnimationFrame(tick); }
-
-    btn.addEventListener('click', () => {
-      const st = btn.dataset.state;
-      if (st === 'playing') { audio.pause(); return; }
-      if (st === 'paused')  { audio.play();  return; }
-      setState('loading');
-    });
-
-    audio.addEventListener('loadedmetadata',()=>{ durationEl.textContent = fmt(audio.duration); });
-    audio.addEventListener('playing',()=>{ setState('playing'); if(rafId) cancelAnimationFrame(rafId); tick(); });
-    audio.addEventListener('pause',()=>{ setState('paused'); if(rafId) cancelAnimationFrame(rafId); });
-    audio.addEventListener('ended',()=>{ setState('reset'); elapsedEl.textContent='0:00'; });
-
-    // expose reset for game.js end-of-round
-    window.resetPlayButton = function(){
-      if (rafId) cancelAnimationFrame(rafId);
-      // Do NOT pause the audio — let it keep playing
-      setState('reset');
-      labDefault.textContent = 'Play Again';
-      elapsedEl.textContent = fmt(audio.currentTime);
-      durationEl.textContent = fmt(audio.duration);
-    };
-  })();
-  </script>
-
-  <!-- Game logic -->
   <script src="/game.js"></script>
-  <script>
-  // Lightweight Auth + Leaderboard wiring (non-destructive)
-  (function(){
-    const $ = (id) => document.getElementById(id);
-    const signInStatusEl = $('signInStatusEl');
-    const authForm       = $('authForm');
-    const nameWrap       = $('nameWrap');
-    const authName       = $('authName');
-    const authPass       = $('authPass');
-    const modeLogin      = $('modeLogin');
-    const modeRegister   = $('modeRegister');
-    const doLogin        = $('doLogin');
-    const doRegister     = $('doRegister');
-    const signOutBtn     = $('signOutBtn');
-    const scoreHint      = $('scoreHint');
-    const leaderboardBody= $('leaderboardBody');
-    const authModes      = $('authModes');
-    const signedInControls = $('signedInControls');
-
-    console.log('[auth] wiring', {
-      modeLogin: !!modeLogin,
-      modeRegister: !!modeRegister,
-      doLogin: !!doLogin,
-      doRegister: !!doRegister,
-      signOutBtn: !!signOutBtn,
-      authForm: !!authForm
-    });
-
-    function showMode(mode){
-      if (authForm) authForm.style.display = 'flex';
-      if (authModes) authModes.style.display = 'none'; // hide the two mode buttons
-
-      // Always show username + password inputs for both modes
-      if (nameWrap)    nameWrap.style.display = '';
-      if (authName)    authName.setAttribute('autocomplete', 'username');
-      if (authPass)    authPass.setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
-      if (authName)    authName.required = true;
-      if (authPass)    authPass.required = true;
-
-      if (mode === 'login'){
-        if (doLogin)     doLogin.style.display = '';
-        if (doRegister)  doRegister.style.display = 'none';
-        if (authName && typeof authName.focus === 'function') authName.focus();
-      } else { // register
-        if (doLogin)     doLogin.style.display = 'none';
-        if (doRegister)  doRegister.style.display = '';
-        if (authName && typeof authName.focus === 'function') authName.focus();
-      }
-    }
-
-    async function getMe(){
-      try {
-        const r = await fetch('/api/me', { credentials: 'same-origin' });
-        if(!r.ok) return null;
-        const me = await r.json();
-        return (me && (me.user || me.me)) ? (me.user || me.me) : null;
-      } catch { return null; }
-    }
-
-    function setAuthedUI(user){
-      if (user){
-        if(signInStatusEl) signInStatusEl.textContent = `Signed in as ${user.username || user.name || 'you'}`;
-        if (signedInControls) signedInControls.style.display = 'block';
-        if (signOutBtn)       signOutBtn.style.display = 'inline-block';
-        if (signOutBtn)       signOutBtn.textContent = 'Sign Out';
-        console.log('[auth] setAuthedUI: showing signedInControls', !!signedInControls, !!signOutBtn);
-        if(authModes)      authModes.style.display = 'none';
-        if(authForm)       authForm.style.display = 'none';
-      } else {
-        showNotSignedIn();
-      }
-    }
-
-    function showNotSignedIn(){
-      if (signInStatusEl) signInStatusEl.textContent = 'Not signed in';
-      if (authModes)      authModes.style.display = 'flex';
-      if (authForm)       authForm.style.display = 'none';
-      if (signedInControls) signedInControls.style.display = 'none';
-      if (signOutBtn)       signOutBtn.style.display = 'none';
-      if (doLogin)        doLogin.style.display = 'none';
-      if (doRegister)     doRegister.style.display = 'none';
-      if (scoreHint)      scoreHint.style.display = 'none';
-      if (authName)       authName.value = '';
-      if (authPass)       authPass.value = '';
-    }
-
-    async function handleLogin(){
-      try {
-        const username = authName && authName.value ? authName.value.trim() : '';
-        const password = authPass && authPass.value ? authPass.value : '';
-        if (!username || !password) {
-          if (signInStatusEl) signInStatusEl.textContent = 'Please enter a username and password';
-          return;
-        }
-        const body = { username, password };
-        const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body) });
-        if(!r.ok) throw new Error('Login failed');
-        const me = await getMe();
-        setAuthedUI(me);
-        window.refreshLeaderboard && window.refreshLeaderboard();
-      } catch(e){ if(signInStatusEl) signInStatusEl.textContent = 'Login failed'; }
-    }
-
-    async function handleRegister(){
-      try {
-        const body = { username: authName && authName.value, password: authPass && authPass.value };
-        const r = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body) });
-        if(!r.ok) throw new Error('Register failed');
-        const me = await getMe();
-        setAuthedUI(me);
-        window.refreshLeaderboard && window.refreshLeaderboard();
-      } catch(e){ if(signInStatusEl) signInStatusEl.textContent = 'Registration failed'; }
-    }
-
-    async function handleSignOut(){
-      try {
-        await fetch('/api/logout', { method:'POST', credentials:'same-origin' });
-        setAuthedUI(null);
-        showNotSignedIn();
-        window.refreshLeaderboard && window.refreshLeaderboard();
-      } catch {}
-    }
-
-    async function refreshLeaderboard(){
-      try {
-        const r = await fetch('/api/leaderboard', { credentials:'same-origin' });
-        if(!r.ok) throw new Error('lb');
-        const data = await r.json();
-        const rows = (data && (data.scores || data.leaderboard)) ? (data.scores || data.leaderboard) : (Array.isArray(data) ? data : []);
-        if(!rows.length){
-          leaderboardBody.innerHTML = '<p class="note">No scores yet.</p>';
-          return;
-        }
-        const html = ['<ol style="margin:0; padding-left:1.2rem;">',
-          ...rows.slice(0,20).map((r)=>`<li>${(r.username||r.name||'anon')} — <strong>${r.points||r.score||0}</strong></li>`),
-        '</ol>'].join('');
-        leaderboardBody.innerHTML = html;
-      } catch {
-        leaderboardBody.innerHTML = '<p class="note">Could not load leaderboard.</p>';
-      }
-    }
-    // Expose safe global fallbacks for inline onclick
-    window.showLogin        = () => showMode('login');
-    window.showRegister     = () => showMode('register');
-    window.doLoginSubmit    = () => handleLogin();
-    window.doRegisterSubmit = () => handleRegister();
-    window.doSignOut        = () => handleSignOut();
-    window.refreshLeaderboard = refreshLeaderboard;
-
-    // Wire UI events if elements exist
-    if(modeLogin)    modeLogin.addEventListener('click',  ()=> showMode('login'));
-    if(modeRegister) modeRegister.addEventListener('click',()=> showMode('register'));
-    if(doLogin)      doLogin.addEventListener('click',    handleLogin);
-    if(doRegister)   doRegister.addEventListener('click', handleRegister);
-    if(signOutBtn)   signOutBtn.addEventListener('click', handleSignOut);
-
-    // Fallback: delegate clicks by id (in case direct listeners didn't bind)
-    document.addEventListener('click', (e) => {
-      const t = e.target;
-      if (!t || !t.id) return;
-      if (t.id === 'modeLogin')    { console.log('[auth] click login');    showMode('login'); }
-      if (t.id === 'modeRegister') { console.log('[auth] click register'); showMode('register'); }
-      if (t.id === 'doLogin')      { console.log('[auth] click doLogin');  handleLogin(); }
-      if (t.id === 'doRegister')   { console.log('[auth] click doReg');    handleRegister(); }
-      if (t.id === 'signOutBtn')   { console.log('[auth] click signOut');  handleSignOut(); }
-    }, true);
-
-    console.log('[auth] boot');
-
-    // Initial session + leaderboard load
-    getMe().then(u => { setAuthedUI(u); if (!u) showNotSignedIn(); }).then(refreshLeaderboard);
-  })();
-  </script>
+  <script src="/app-auth.js" defer></script>
 </body>
 </html>

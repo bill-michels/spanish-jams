@@ -295,12 +295,16 @@ ol li {
 }
 
 .play-wrap {
-  margin-block: var(--cta-margin-block);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  margin: -6px 0 0 !important;
+  min-height: 20px;
+  width: 100%;
 }
+
 
 /* 🔒 Hide native audio element UI (we drive UI via the button) */
 #jamAudio {
@@ -342,4 +346,154 @@ ol li {
 #playBtn[data-state="loading"] .label-playing,
 #playBtn[data-state="reset"] .label-playing {
   display: none !important;
+}
+
+/* === Figma Design Tokens (added Nov 2025) === */
+
+:root {
+  /* spacing scale */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* colors (tune to Figma) */
+  --color-bg: #ffffff;
+  --color-panel: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-primary: #1f6feb;
+
+  /* shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 6px rgba(0,0,0,0.08);
+
+  /* type scale */
+  --fs-sm: 12px;
+  --fs-base: 14px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+}
+
+/* === Figma-Compatible Utility Classes (Nov 2025) === */
+
+/* Layout */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.top-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+/* Fixed header */
+#fixedHeader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+#fixedHeader .header-inner {
+  padding: var(--space-2) 0;
+}
+
+/* Panels */
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-head {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-body {
+  padding: var(--space-3);
+}
+
+.panel.hero-panel,
+.panel.auth-panel,
+.panel.leaderboard-panel {
+  min-height: 40px;
+}
+
+/* Buttons & Inputs */
+.input {
+  width: 100%;
+  height: 32px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  background: #155fc3;
+  transform: scale(1.03);
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Play row */
+.play-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: -6px;
+}
+
+#statusEl {
+  margin-top: 2px;
+  color: var(--color-muted);
+}
+
+/* Auth panel state toggle */
+.auth-login { display: block; }
+.auth-logged { display: none; }
+.is-authed .auth-login { display: none; }
+.is-authed .auth-logged { display: block; }
+
+/* Main layout offset under fixed header */
+main.app-main {
+  padding-top: 130px;
 }

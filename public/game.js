@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ------- Elements
   const playBtn  = document.getElementById("playBtn");
+  const playAgainBtn = document.getElementById("playAgainBtn");
   const jamAudio = document.getElementById("jamAudio");
   const statusEl = document.getElementById("statusEl");
   const answerEl = document.getElementById("answerEl");
@@ -16,6 +17,78 @@ console.log("jamAudio element:", jamAudio);
     console.error("Required elements missing. Check index.html IDs.");
     return; // safe to return here because we are inside DOMContentLoaded handler
   }
+
+  const labelDefault = playBtn.querySelector(".label-default");
+  const labelLoading = playBtn.querySelector(".label-loading");
+  const labelPlaying = playBtn.querySelector(".label-playing");
+  const elapsedSpan  = document.getElementById("elapsed");
+  const durationSpan = document.getElementById("duration");
+
+  function formatTime(sec) {
+    if (!isFinite(sec) || sec < 0) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return m + ":" + (s < 10 ? "0" + s : s);
+  }
+
+  function setPlayState(state) {
+    if (!playBtn) return;
+    playBtn.dataset.state = state;
+    if (state === "idle") {
+      if (!labelDefault || !labelLoading || !labelPlaying) return;
+
+      // Idle = either initial state OR paused mid-jam.
+      // Show "Resume" only when there's progress in the current clip
+      // AND the round is still active (not over).
+      const hasProgress =
+        jamAudio &&
+        isFinite(jamAudio.currentTime) &&
+        jamAudio.currentTime > 0 &&
+        !jamAudio.ended;
+
+      labelDefault.textContent = hasProgress ? "Resume" : "Play";
+      labelDefault.hidden = false;
+      labelLoading.hidden = true;
+      labelPlaying.hidden = true;
+    } else if (state === "loading") {
+      labelDefault.hidden = true;
+      labelLoading.hidden = false;
+      labelPlaying.hidden = true;
+    } else if (state === "playing") {
+      labelDefault.hidden = true;
+      labelLoading.hidden = true;
+      labelPlaying.hidden = false;
+    }
+  }
+
+  // initial state
+  setPlayState("idle");
+  if (playAgainBtn) {
+    playAgainBtn.style.display = "none";
+  }
+
+  // keep transport UI in sync with audio element
+  jamAudio.addEventListener("timeupdate", () => {
+    if (!elapsedSpan || !durationSpan) return;
+    elapsedSpan.textContent = formatTime(jamAudio.currentTime || 0);
+    durationSpan.textContent = formatTime(jamAudio.duration || 0);
+  });
+  jamAudio.addEventListener("loadedmetadata", () => {
+    if (!durationSpan) return;
+    durationSpan.textContent = formatTime(jamAudio.duration || 0);
+  });
+  jamAudio.addEventListener("play", () => {
+    setPlayState("playing");
+  });
+  jamAudio.addEventListener("pause", () => {
+    // when paused (not ended), show idle label so button reads as Play
+    if (!jamAudio.ended) {
+      setPlayState("idle");
+    }
+  });
+  jamAudio.addEventListener("ended", () => {
+    setPlayState("idle");
+  });
 
 // Auto-start logic removed: inline transport + loadRandomClip() are triggered from the guarded Play button listener below.
 
@@ -144,6 +217,8 @@ answerEl.style.display = "none";
 function loadRandomClip() {
   const myRound = ++round;
   roundOver = false;                     // round is active again
+  setPlayState("loading");
+  if (playAgainBtn) playAgainBtn.style.display = "none";
   playBtn.disabled = true;               // disable only while loading
   setButtonsEnabled(false);
   clearUsedMarks();
@@ -222,6 +297,7 @@ function loadRandomClip() {
             }
           } catch {/* ignore parse issues */}
 
+          setPlayState("playing");
           jamAudio.play().catch(err => {
   console.error('[audio] play() failed', err);
 });
@@ -246,23 +322,29 @@ window.startRound = function(){ console.log('[round] startRound() called'); load
 
   // Single, clean listener (no delegated fallback)
 playBtn.disabled = false;
-playBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  const st = (playBtn.dataset && playBtn.dataset.state) ? playBtn.dataset.state : 'idle';
-  // Allow start when idle OR when the inline transport just set it to 'loading'
-  if (st !== 'idle' && st !== 'loading') {
-    return; // pause/resume handled by inline transport
-  }
-  console.log('[click] starting round from game.js, state =', st);
-  loadRandomClip();
-});
+  playBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    // If we already have audio, this button is pure Play/Pause transport.
+    if (jamAudio.src) {
+      if (jamAudio.paused) {
+        jamAudio.play().catch(() => {});
+      } else {
+        jamAudio.pause();
+      }
+      return;
+    }
+
+    // No audio yet: start the first round.
+    loadRandomClip();
+  });
 
   // ------- Guess handling (3 guesses with year buttons)
   yearGrid.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn || btn.disabled) return;
     if (roundOver) {
-      statusEl.textContent = "This round is over. Click “Play the Jam” to start another round.";
+      statusEl.textContent = "This round is over. Use Play Again to start a new round.";
       btn.blur();
       return;
     }
@@ -285,53 +367,78 @@ playBtn.addEventListener("click", (e) => {
   });
 
   function onWin() {
-  roundOver = true;                        // lock the round
-  setButtonsEnabled(false);
-  statusEl.textContent = `You nailed it on guess ${guessCount}!`;
+    roundOver = true;                        // lock the round
+    setButtonsEnabled(false);
+    statusEl.textContent = `You nailed it on guess ${guessCount}!`;
 
-  const showTitle = cleanShowTitle(current.title, current.date, current.venue);
-  const trackName = (current.file && (current.file.title || current.file.name)) || "";
+    const showTitle = cleanShowTitle(current.title, current.date, current.venue);
+    const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
-  answerEl.style.display = "block";
-  answerEl.innerHTML = `
-    <div style="margin-top:6px;">
-      <strong>${showTitle}</strong>
-      ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
-    </div>
-  `;
+    answerEl.style.display = "block";
+    answerEl.innerHTML = `
+      <div style="margin-top:6px;">
+        <strong>${showTitle}</strong>
+        ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
+      </div>
+    `;
 
-  // Render track list under the answer
-  if (current?.identifier) {
-    fetch(`/api/show/${encodeURIComponent(current.identifier)}`)
-      .then(r => r.json())
-      .then(show => {
-        if (show && !show.error) {
-          renderTracksUnderAnswer(show.tracks || []);
-// renderShowBottom(show); // disabled to avoid duplicate list
-        } else {
+    // Render track list under the answer
+    if (current?.identifier) {
+      fetch(`/api/show/${encodeURIComponent(current.identifier)}`)
+        .then(r => r.json())
+        .then(show => {
+          if (show && !show.error) {
+            renderTracksUnderAnswer(show.tracks || []);
+            // renderShowBottom(show); // disabled to avoid duplicate list
+          } else {
+            answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+          }
+        })
+        .catch(() => {
           answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
-        }
-      })
-      .catch(() => {
-        answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
-      });
-// Award points only if won within 3 guesses: 1st → 3, 2nd → 2, 3rd → 1
-let pts = 0;
-if (guessCount === 1) pts = 3;
-else if (guessCount === 2) pts = 2;
-else if (guessCount === 3) pts = 1;
+        });
+    }
 
-console.log("[CLIENT] scoring win", { guessCount, pts });
-fetch("/api/score", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points: pts })
-}).then(() => {
-  if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
-}).catch(()=>{});
-if (window.resetPlayButton) window.resetPlayButton();
+    // Award points only if won within 3 guesses: 1st → 3, 2nd → 2, 3rd → 1
+    let pts = 0;
+    if (guessCount === 1) pts = 3;
+    else if (guessCount === 2) pts = 2;
+    else if (guessCount === 3) pts = 1;
+
+    console.log("[CLIENT] scoring win", { guessCount, pts });
+
+    // keep a running total on the client so the auth box can show it
+    if (typeof window.currentScore !== "number") {
+      window.currentScore = 0;
+    }
+    window.currentScore += pts;
+    const authedScoreEl = document.getElementById("authedScore");
+    if (authedScoreEl) {
+      authedScoreEl.textContent = "Score: " + window.currentScore;
+    }
+
+    // send just THIS round's points to the server; server aggregates
+    fetch("/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score: pts })
+    }).then(() => {
+      if (typeof window.refreshLeaderboard === "function") {
+        window.refreshLeaderboard();
+      } else {
+        // retry once in case index.html script defined it later
+        setTimeout(() => {
+          if (typeof window.refreshLeaderboard === "function") {
+            window.refreshLeaderboard();
+          }
+        }, 500);
+      }
+    }).catch(() => {});
+
+    if (playAgainBtn) {
+      playAgainBtn.style.display = "inline-flex";
+    }
   }
-}
 
 function onOutOfGuesses(correctYear) {
   roundOver = true;                        // lock the round
@@ -363,15 +470,27 @@ function onOutOfGuesses(correctYear) {
       .catch(() => {
         answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
       });
-// No points when out of guesses
-fetch("/api/score", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points: 0 })
-}).then(() => {
-  if (typeof window.refreshLeaderboard === "function") window.refreshLeaderboard();
-}).catch(()=>{});
-if (window.resetPlayButton) window.resetPlayButton();
+  }
+
+  // No points when out of guesses
+  fetch("/api/score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score: 0 })
+  }).then(() => {
+    if (typeof window.refreshLeaderboard === "function") {
+      window.refreshLeaderboard();
+    } else {
+      setTimeout(() => {
+        if (typeof window.refreshLeaderboard === "function") {
+          window.refreshLeaderboard();
+        }
+      }, 500);
+    }
+  }).catch(() => {});
+
+  if (playAgainBtn) {
+    playAgainBtn.style.display = "inline-flex";
   }
 }
 
@@ -442,5 +561,14 @@ if (window.resetPlayButton) window.resetPlayButton();
           document.getElementById("backToBrowse").onclick = (e)=>{e.preventDefault(); restoreRightPanel();};
         }
       });
+  }
+
+  // Play Again button handler
+  if (playAgainBtn) {
+    playAgainBtn.addEventListener("click", () => {
+      roundOver = false;
+      loadRandomClip();
+      playAgainBtn.style.display = "none";
+    });
   }
 });

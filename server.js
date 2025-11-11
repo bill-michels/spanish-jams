@@ -1,4 +1,6 @@
-// server.js
+require('dotenv').config();
+console.log("SESSION_SECRET loaded in Node:", !!process.env.SESSION_SECRET);
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
 console.log("BOOT: using", __filename);
 
@@ -10,23 +12,54 @@ const cookieSession = require("cookie-session");
 const Database = require("better-sqlite3");
 const bcrypt = require("bcryptjs");
 const rateLimit = require('express-rate-limit');
+const helmet = require("helmet");
+const compression = require("compression");
 
 // Node 18+ has global fetch (your Node is v22.x), so no polyfill needed.
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set("trust proxy", 1);
+app.use(express.json({ limit: '20kb' }));
+app.use(express.urlencoded({ extended: true, limit: '20kb' }));
+
 // ---------- Sessions ----------
 app.use(cookieSession({
-  name: "sj_session",
-  keys: (process.env.SESSION_SECRETS || "replace-with-a-long-random-key").split(","),
+  name: 'session',
+  secret: process.env.SESSION_SECRET,
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
+  sameSite: 'lax',
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  maxAge: 1000 * 60 * 60 * 24 * 30
+  secure: process.env.NODE_ENV === 'production'
 }));
-// If behind a proxy/edge (Vercel/Render/Nginx), trust it so secure cookies work:
-app.set("trust proxy", 1);
+
+// ---------- Security & compression ----------
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'"],                 // no inline scripts allowed
+      "style-src": ["'self'", "'unsafe-inline'"], // keep inline styles for now
+      "img-src": ["'self'", "data:", "https://archive.org", "https://*.archive.org"],
+      "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
+      "connect-src": ["'self'", "https://archive.org", "https://*.archive.org"],
+      "frame-ancestors": ["'self'"]
+    }
+  }
+}));
+app.use(compression());
+
+// ---------- Global rate limiting for all /api routes ----------
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20,            // not "limit"
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use('/api/', apiLimiter);
 
 // ---------- Static files ----------
 app.use(express.static(path.join(__dirname, "public")));
@@ -44,6 +77,13 @@ db.prepare(`
     password TEXT NOT NULL
   )
 `).run();
+
+// Enforce case-insensitive uniqueness at the database level
+db.prepare(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase
+  ON users(lower(username))
+`).run();
+
 // Note: usernames are normalized to lowercase in code for consistent lookups.
 
 db.prepare(`
@@ -55,7 +95,12 @@ db.prepare(`
     FOREIGN KEY(user_id) REFERENCES users(id)
   )
 `).run();
-
+// add display_name if it doesn't exist yet
+try {
+  db.prepare(`ALTER TABLE users ADD COLUMN display_name TEXT`).run();
+} catch (e) {
+  // will throw if column already exists → ignore
+}
 // Prepared statements
 const getUserByName = db.prepare(`SELECT * FROM users WHERE username = ?`);
 const createUser    = db.prepare(`INSERT INTO users (username, password) VALUES (?, ?)`);
@@ -63,14 +108,16 @@ const getUserById   = db.prepare(`SELECT * FROM users WHERE id = ?`);
 const insertScore   = db.prepare(`INSERT INTO scores (user_id, points) VALUES (?, ?)`);
 
 const topLeaderboard = db.prepare(`
-  SELECT u.username AS name, SUM(s.points) AS total_points, COUNT(*) AS games
+  SELECT
+    COALESCE(u.display_name, u.username) AS name,
+    SUM(s.points) AS total_points,
+    COUNT(*) AS games
   FROM scores s
   JOIN users u ON u.id = s.user_id
   GROUP BY s.user_id
   ORDER BY total_points DESC, games DESC, name ASC
   LIMIT 20
 `);
-
 // ---------- Rate limiting for auth endpoints ----------
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -104,8 +151,8 @@ function itemDownloadUrl(identifier, filename) {
 // ---------- API: Random clip with uniform year (1966–1995) ----------
 app.get("/api/random-clip", async (req, res) => {
   try {
-    const startY = parseInt(req.query.start || "1966", 10);
-    const endY   = parseInt(req.query.end   || "1995", 10);
+const startY = Math.max(1965, Math.min(1995, parseInt(req.query.start || "1966", 10)));
+const endY   = Math.max(startY, Math.min(1995, parseInt(req.query.end || "1995", 10)));
 
     // 1) Pick a year uniformly
     const years = [];
@@ -168,6 +215,9 @@ app.get("/api/random-clip", async (req, res) => {
 app.get("/api/show/:id", async (req, res) => {
   try {
     const id = req.params.id;
+    if (!/^[A-Za-z0-9._\-]+$/.test(id)) {
+  return res.status(400).json({ error: "Invalid show id" });
+}
     const metaUrl = `https://archive.org/metadata/${encodeURIComponent(id)}`;
     const mr = await fetch(metaUrl);
     const meta = await mr.json();
@@ -207,7 +257,10 @@ app.post("/api/register", authLimiter, express.json(), async (req, res) => {
     if (typeof username !== "string" || typeof password !== "string") {
       return res.status(400).json({ error: "Username and password required" });
     }
-    const uname = username.trim().toLowerCase();
+
+    const displayName = username.trim();         // what they typed
+    const uname = displayName.toLowerCase();     // canonical
+
     if (uname.length < 3 || uname.length > 24) {
       return res.status(400).json({ error: "Username must be 3–24 characters" });
     }
@@ -218,11 +271,15 @@ app.post("/api/register", authLimiter, express.json(), async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     try {
+      // insert canonical
       const info = createUser.run(uname, hashed);
+
+      // store pretty version
+      db.prepare(`UPDATE users SET display_name = ? WHERE id = ?`).run(displayName, info.lastInsertRowid);
+
       req.session.userId = info.lastInsertRowid;
-      res.json({ success: true, user: { id: info.lastInsertRowid, username: uname } });
+      res.json({ success: true, user: { id: info.lastInsertRowid, username: displayName } });
     } catch (e) {
-      // Unique constraint race or existing user
       return res.status(409).json({ error: "Username already taken" });
     }
   } catch (e) {
@@ -252,7 +309,8 @@ app.post("/api/login", authLimiter, express.json(), async (req, res) => {
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
     req.session.userId = user.id;
-    res.json({ success: true, user: { id: user.id, username: user.username } });
+   const shownName = user.display_name || user.username;
+res.json({ success: true, user: { id: user.id, username: shownName } });
   } catch (e) {
     console.error("login failed:", e);
     res.status(500).json({ error: "Login failed" });
@@ -271,7 +329,8 @@ app.get("/api/me", (req, res) => {
       console.log(`/api/me → no user found for id ${id}`);
       return res.json({ user: null });
     }
-    res.json({ user: { id: user.id, username: user.username, name: user.username } });
+    const shownName = user.display_name || user.username;
+res.json({ user: { id: user.id, username: shownName, name: shownName } });
   } catch (err) {
     console.error("/api/me failed:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -284,21 +343,46 @@ app.post("/api/logout", (req, res) => {
 });
 
 // ---------- Score & Leaderboard ----------
-app.post("/api/score", express.json(), (req, res) => {
-  const id = req.session.userId;
-  if (!id) return res.status(401).json({ error: "Sign in required" });
-  let { points } = req.body || {};
-  points = Number(points);
-  if (!Number.isFinite(points) || points < 0) points = 0;
-  if (points > 100) points = 100;
-  insertScore.run(id, points);
-  const user = getUserById.get(id);
-  res.json({ ok: true, score: { username: user?.username || 'you', points } });
+app.post('/api/score', (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Not signed in' });
+  }
+
+  // accept different payload shapes from the front end
+  const rawScore =
+    (req.body && (req.body.score ?? req.body.points ?? req.body.value)) ?? null;
+
+  if (rawScore === null) {
+    console.log('/api/score → missing score. body was:', req.body);
+    return res.status(400).json({ error: 'score is required' });
+  }
+
+  const numericScore = Number(rawScore);
+  if (Number.isNaN(numericScore)) {
+    return res.status(400).json({ error: 'score must be a number' });
+  }
+
+  if (numericScore < 0 || numericScore > 100000) {
+    return res.status(400).json({ error: 'score out of range' });
+  }
+
+  const userId = req.session.userId;
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO scores (user_id, points)
+      VALUES (?, ?)
+    `);
+    stmt.run(userId, numericScore);
+  } catch (err) {
+    console.error('/api/score insert failed:', err);
+    return res.status(500).json({ error: 'failed to save score' });
+  }
+
+  return res.json({ ok: true });
 });
 
 app.get("/api/leaderboard", (_req, res) => {
   const rows = topLeaderboard.all();
-  // Normalize to the shape the frontend expects: { leaderboard: [{ username, points, games }] }
   const leaderboard = rows.map(r => ({
     username: r.name,
     points: r.total_points,
@@ -341,7 +425,7 @@ app.get("/year/:year", async (req, res) => {
 
 app.get("/search", async (req, res) => {
   try {
-    const qRaw = (req.query.q || "").trim();
+    const qRaw = (req.query.q || "").trim().slice(0, 200);
     const term = qRaw ? qRaw : "";
     const q = term
       ? `collection:GratefulDead AND (title:${term} OR venue:${term} OR date:${term})`
