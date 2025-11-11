@@ -1,4 +1,4 @@
-# 🎸 Live Music App (“Spanish Jams”)
+# 🎸 Live Music App (“Mind Left Body”)
 
 A web app that is a music game that tests a players knowledge of live Grateful Dead shows. It plays a random song, and the player has to guess the year. There is scoring and leaderboard. The music is powered by Archive.org content — built with **Node.js**, **Express**, and a simple browser UI (`index.html`, `styles.css`, `game.js`).
 
@@ -147,6 +147,26 @@ This means the Archive.org API occasionally stalls or rate-limits.
 - [ ] Deploy to Render or Vercel for demo access.
 
 ---
+---
+### 🔒 Hardening & Security Notes (Nov 2025)
+
+**Backend:**
+- Added **bcrypt** password hashing  
+- Added **Helmet** for security headers + strong Content Security Policy (CSP)  
+- Added **rate limiting** on `/api/*` routes  
+- Added **input validation** for all API endpoints (especially `/api/show/:id` and `/api/score`)  
+- Sessions use `.env`-defined `SESSION_SECRET` (excluded via `.gitignore`)  
+- CSP tightened with external allowances for Archive.org media  
+
+**Environment:**
+- `.env` now required locally; template provided as `.env.example`
+- `NODE_ENV` respected for dev/prod  
+
+**Repo hygiene:**
+- `.gitignore` excludes sensitive files (`.env`, `.sqlite`, logs)
+- `.env.example` added
+- Stable snapshot committed on branch: `main`
+- Current design work continues on branch: `feature/figma-integration`
 
 ## 🧭 Credits
 
