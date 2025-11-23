@@ -1,41 +1,85 @@
 :root {
-  --bg: #F0E6EF;
-  --card: #B8BEDD;
-  --ink: #f9f9f9;
-  --muted: #b0b0b0;
-  --line: #3a3a3a;
-  --accent: #0a84ff;
-  --radius: 12px;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  /* Base layout tokens */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+
+  /* Background image and tint */
+  --mlb-bg-image: url("/Images/bg-deadshow.webp");
+  --mlb-tint: rgba(243, 178, 62, 0.24);
+
+  /* Header tokens */
+  --mlb-header-bg: #FDF8F4;
+  --mlb-header-opacity: 0.7;
+  --mlb-header-height: 140px;
+  --mlb-header-pad-y: 8px;
+  --mlb-header-pad-x: 16px;
+  --mlb-header-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  /* Warm retro-modern palette */
+  --mlb-bg: #fdf8f4;
+  --mlb-panel-bg: #ffffff;
+  --mlb-border-subtle: rgba(0, 0, 0, 0.08);
+  --mlb-text-main: #111827;
+  --mlb-text-muted: #6b7280;
+  --mlb-primary: #e36f4c;
+  --mlb-primary-soft: #f3b23e;
+
+  /* Backwards-compatible aliases */
+  --bg: var(--mlb-bg);
+  --ink: var(--mlb-text-main);
+  --muted: var(--mlb-text-muted);
+  --line: var(--mlb-border-subtle);
+  --color-panel: var(--mlb-panel-bg);
+  --color-border: var(--mlb-border-subtle);
+  --color-muted: var(--mlb-text-muted);
+  --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.08);
 }
 
+/* === BASE STYLES === */
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--mlb-bg);
+  color: var(--mlb-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   line-height: 1.5;
 }
 
-header {
-  background: #2b2b2b;
-  border-bottom: 1px solid var(--line);
-  padding: 16px 20px;
-  box-shadow: var(--shadow);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* === BACKGROUND PHOTO + TINT === */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
-header .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
+body::before {
+  background-image: var(--mlb-bg-image);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.6;
 }
 
+body::after {
+  background: var(--mlb-tint);
+}
+
+/* === TYPOGRAPHY === */
 h1 {
   margin: 0 0 4px;
   font-size: 24px;
@@ -46,56 +90,9 @@ h1 {
   font-size: 14px;
 }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  justify-content: center;
-  background: #2b2b2b;
-  border-bottom: 1px solid var(--line);
-}
-
-.tab-btn {
-  background: none;
-  border: none;
+.note {
   color: var(--muted);
-  font-size: 16px;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: color 0.2s;
-  box-shadow: none;
-}
-
-.tab-btn:hover {
-  color: var(--ink);
-}
-
-.tab-btn.active {
-  background: #001f3f; /* solid navy */
-  color: #ccc;         /* light grey text */
-  border: none;
-  box-shadow: none;
-}
-
-/* Panels */
-.tab-container {
-  max-width: 1100px;
-  margin: 20px auto;
-  padding: 0 16px;
-}
-
-.panel {
-  background: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-
-.panel-head {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line);
-  background: #222;
+  font-size: 14px;
 }
 
 .tab-title {
@@ -103,324 +100,69 @@ h1 {
   font-weight: 600;
 }
 
-.panel-body {
-  padding: 16px;
-}
-
-/* Center all status messages under the Play button */
-#gameStatus {
-  text-align: center;
-  margin-top: 8px;
-}
-
-.tab-panel {
-  display: none;
-}
-
-.tab-panel.active {
-  display: block;
-}
-
-/* Controls */
-button,
-input[type="text"] {
-  font-size: 16px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: #000;
-}
-
-button {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  cursor: pointer;
-  transition: filter 0.2s;
-}
-
-button:hover {
-  filter: brightness(0.9);
-}
-
-button:disabled {
-  background: #555;
-  border-color: #555;
-  color: #aaa;
-  cursor: not-allowed;
-}
-
-/* Year grid */
-.years {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-  gap: 8px;
-}
-
-.years a,
-.years button {
-  display: block;
-  text-align: center;
-  padding: 8px 10px;
-  text-decoration: none;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #333;
-  transition: background 0.2s;
-}
-
-.years a:hover,
-.years button:hover {
-  background: #444;
-}
-
-/* Notes & links */
-.note {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-a.link {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-a.link:hover {
-  text-decoration: underline;
-}
-
-/* Lists and track items */
-.list {
-  margin-top: 10px;
-}
-
-ol {
-  padding-left: 20px;
-}
-
-ol li {
-  margin: 6px 0;
-}
-/* Guess-the-Year grid: highlight chosen years */
-.years-guess button.used {
-  background: #001f3f;   /* solid navy */
-  color: #ccc;           /* light grey text */
-  border-color: #001a34;
-  box-shadow: none;
-}
-
-/* Optional: clearer hover vs chosen */
-.years-guess button:hover:not(.used) {
-  background: #404040;
-}
-/* Force 6 columns for the Guess-the-Year grid */
-.years-guess {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-}
-
-/* Make buttons a touch taller for a neat 5-row block */
-.years-guess button {
-  padding: 10px 0;
-}
-
-/* Force bottom-panel track links to use muted gray color */
-#bottom-show .bottom-play,
-#bottom-show .bottom-play:visited {
-  color: #9ca3af !important; /* force the gray color */
-  text-decoration: none;
-}
-
-#bottom-show .bottom-play:hover {
-  color: #d1d5db !important; /* lighter gray on hover */
-  text-decoration: underline;
-}
-/* Answer panel track links (under the guess result) */
-#answer .gt-play,
-#answer .gt-play:visited {
-  color: #9ca3af !important;    /* same muted gray as time/meta */
-  text-decoration: none;
-}
-
-#answer .gt-play:hover {
-  color: #d1d5db !important;     /* lighter gray on hover */
-  text-decoration: underline;
-}
-
-/* Bottom panel track links (already added earlier, but keep here for completeness) */
-#bottom-show .bottom-play,
-#bottom-show .bottom-play:visited {
-  color: #9ca3af !important;
-  text-decoration: none;
-}
-
-#bottom-show .bottom-play:hover {
-  color: #d1d5db !important;
-  text-decoration: underline;
-}
-/* Force 6 columns for the Listen tab year grid */
-.years-browse {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-}
-
-/* 🎵 Play Button styling */
-.btn {
-  font-size: var(--btn-font-size);
-  padding: var(--btn-padding-y) var(--btn-padding-x);
-  border-radius: var(--btn-radius);
-  box-shadow: var(--btn-shadow);
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.btn-primary {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-fg);
-}
-
-.btn-primary:hover {
-  background: var(--btn-primary-hover-bg);
-  transform: scale(1.03);
-}
-
-.btn-primary:focus {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.play-wrap {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px;
-  margin: -6px 0 0 !important;
-  min-height: 20px;
-  width: 100%;
-}
-
-
-/* 🔒 Hide native audio element UI (we drive UI via the button) */
-#jamAudio {
-  display: none !important;
-  width: 0;
-  height: 0;
-}
-
-/* ⏯ Expand button slightly in transport states */
-.btn[data-state="playing"],
-.btn[data-state="paused"] {
-  padding-top: calc(var(--btn-padding-y) * 1.1);
-  padding-bottom: calc(var(--btn-padding-y) * 1.1);
-}
-
-/* 🎛️ Inline labels inside the button */
-.btn .label-loading {
-  font-style: italic;
-  opacity: 0.9;
-}
-
-.btn .label-playing {
-  display: inline-flex;
-  gap: 8px;
-  align-items: baseline;
-}
-/* --- Play button state visibility hardening --- */
-[hidden] { display: none !important; }
-
-/* Layout for the time/transport block when it is shown */
-#playBtn .label-playing {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* Never show the time/transport in Default, Loading, or Reset */
-#playBtn[data-state="idle"] .label-playing,
-#playBtn[data-state="loading"] .label-playing,
-#playBtn[data-state="reset"] .label-playing {
-  display: none !important;
-}
-
-/* === Figma Design Tokens (added Nov 2025) === */
-
-:root {
-  /* spacing scale */
-  --space-0: 0;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* radii */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  /* colors (tune to Figma) */
-  --color-bg: #ffffff;
-  --color-panel: #ffffff;
-  --color-border: #e5e7eb;
-  --color-text: #111827;
-  --color-muted: #6b7280;
-  --color-primary: #1f6feb;
-
-  /* shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 2px 6px rgba(0,0,0,0.08);
-
-  /* type scale */
-  --fs-sm: 12px;
-  --fs-base: 14px;
-  --fs-lg: 18px;
-  --fs-xl: 22px;
-}
-
-/* === Figma-Compatible Utility Classes (Nov 2025) === */
-
-/* Layout */
+/* === LAYOUT === */
 .container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 var(--space-4);
 }
 
-.top-row {
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px 6px;
   display: flex;
-  gap: var(--space-4);
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* Fixed header */
+.top-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .top-row {
+    flex-direction: column;
+  }
+}
+
+/* === FIXED HEADER === */
 #fixedHeader {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
-  background: var(--color-bg);
-  box-shadow: var(--shadow-sm);
+  background: var(--mlb-header-bg);
+  opacity: var(--mlb-header-opacity);
+  box-shadow: var(--mlb-header-shadow);
+  backdrop-filter: blur(2px);
+  padding: 4px 0 !important;
 }
 
 #fixedHeader .header-inner {
-  padding: var(--space-2) 0;
+  padding: 4px 16px !important;
+  gap: 2px !important;
 }
 
-/* Panels */
+#fixedHeader .play-wrap {
+  margin-top: -8px !important;
+  margin-bottom: 4px !important;
+}
+
+main.app-main {
+  padding-top: calc(var(--mlb-header-height));
+}
+
+/* === PANELS === */
 .panel {
-  background: var(--color-panel);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: saturate(1.05) blur(0.5px);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
 }
 
 .panel-head {
@@ -438,7 +180,31 @@ ol li {
   min-height: 40px;
 }
 
-/* Buttons & Inputs */
+.panel.hero-panel {
+  padding: 0 !important;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+section.panel.years-panel {
+  margin: var(--space-6) 0 !important;
+  padding: 12px !important;
+  background: rgba(139, 157, 175, 0.60) !important;
+}
+
+.years-panel h4 {
+  display: none;
+}
+
+.answer-panel {
+  margin: var(--space-6) 0 !important;
+  padding: 12px !important;
+  background: rgba(139, 157, 175, 0.6) !important;
+}
+
+/* === BUTTONS & INPUTS === */
 .input {
   width: 100%;
   height: 32px;
@@ -446,6 +212,35 @@ ol li {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font: inherit;
+}
+
+button,
+input[type="text"] {
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #000;
+}
+
+button {
+  background: var(--mlb-primary);
+  color: #fff;
+  border-color: var(--mlb-primary);
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+button:hover {
+  filter: brightness(0.9);
+}
+
+button:disabled {
+  background: #bbb;
+  border-color: #bbb;
+  color: #fff;
+  cursor: not-allowed;
 }
 
 .btn {
@@ -456,7 +251,7 @@ ol li {
   padding: 0 var(--space-4);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-  background: var(--color-primary);
+  background: var(--mlb-primary);
   color: #fff;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
@@ -472,7 +267,61 @@ ol li {
   cursor: not-allowed;
 }
 
-/* Play row */
+/* === YEAR GRID === */
+.years,
+.years-guess,
+.years-browse {
+  display: grid;
+  gap: 8px;
+}
+
+.years {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+}
+
+.years-guess,
+.years-browse {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* Year buttons */
+.years a,
+.years button,
+.years-guess button,
+.years-browse button {
+  display: block;
+  text-align: center;
+  padding: 10px 0;
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #F3B23E;
+  transition: background 0.18s ease, transform 0.08s ease;
+  cursor: pointer;
+}
+
+.years a:hover,
+.years button:hover,
+.years-guess button:hover:not(.used),
+.years-browse button:hover {
+  background: #5B8FA3;
+  transform: translateY(-1px);
+}
+
+.years-guess button.used {
+  background: #D26757;
+  color: #fff;
+  border-color: #D26757;
+  cursor: default;
+}
+
+.years-guess button.used:hover {
+  background: #D26757;
+  transform: none;
+}
+
+/* === PLAY CONTROLS === */
 .play-wrap {
   display: flex;
   flex-direction: column;
@@ -487,13 +336,71 @@ ol li {
   color: var(--color-muted);
 }
 
-/* Auth panel state toggle */
-.auth-login { display: block; }
-.auth-logged { display: none; }
-.is-authed .auth-login { display: none; }
-.is-authed .auth-logged { display: block; }
+#gameStatus {
+  text-align: center;
+  margin-top: 8px;
+}
 
-/* Main layout offset under fixed header */
-main.app-main {
-  padding-top: 130px;
+/* === AUTH PANEL === */
+.auth-login {
+  display: block;
+}
+
+.auth-logged {
+  display: none;
+}
+
+.is-authed .auth-login {
+  display: none;
+}
+
+.is-authed .auth-logged {
+  display: block;
+}
+
+/* === LINKS === */
+a.link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a.link:hover {
+  text-decoration: underline;
+}
+
+/* Answer panel track links */
+#answer .gt-play,
+#answer .gt-play:visited {
+  color: #9ca3af !important;
+  text-decoration: none;
+}
+
+#answer .gt-play:hover {
+  color: #d1d5db !important;
+  text-decoration: underline;
+}
+
+/* Bottom panel track links */
+#bottom-show .bottom-play,
+#bottom-show .bottom-play:visited {
+  color: #9ca3af !important;
+  text-decoration: none;
+}
+
+#bottom-show .bottom-play:hover {
+  color: #d1d5db !important;
+  text-decoration: underline;
+}
+
+/* === LISTS === */
+.list {
+  margin-top: 10px;
+}
+
+ol {
+  padding-left: 5px;
+}
+
+ol li {
+  margin: 6px 0;
 }

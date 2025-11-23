@@ -213,6 +213,10 @@ setButtonsEnabled(false);
 jamAudio.style.display = "none";
 answerEl.style.display = "none";
 
+// Hide answer panel initially
+const answerPanel = document.querySelector('.answer-panel');
+if (answerPanel) answerPanel.style.display = "none";
+
 // ------- Core: load a random clip (stable)
 function loadRandomClip() {
   const myRound = ++round;
@@ -236,6 +240,9 @@ function loadRandomClip() {
   answerEl.textContent = "";
   guessCount = 0;
   current = null;
+  // Also hide the answer panel itself
+const answerPanel = document.querySelector('.answer-panel');
+if (answerPanel) answerPanel.style.display = "none";
 
     // Hard reset audio so old events/buffers can't leak
     try { jamAudio.pause(); } catch (_) {}
@@ -375,6 +382,8 @@ playBtn.disabled = false;
     const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
     answerEl.style.display = "block";
+const answerPanel = document.querySelector('.answer-panel');
+if (answerPanel) answerPanel.style.display = "block";
     answerEl.innerHTML = `
       <div style="margin-top:6px;">
         <strong>${showTitle}</strong>
@@ -412,9 +421,13 @@ playBtn.disabled = false;
       window.currentScore = 0;
     }
     window.currentScore += pts;
-    const authedScoreEl = document.getElementById("authedScore");
+    const authedScoreEl = document.getElementById("authedScoreValue");
+    const mobileAuthedScoreEl = document.getElementById("mobileAuthedScore");
     if (authedScoreEl) {
-      authedScoreEl.textContent = "Score: " + window.currentScore;
+      authedScoreEl.textContent = window.currentScore;
+    }
+    if (mobileAuthedScoreEl) {
+      mobileAuthedScoreEl.textContent = window.currentScore;
     }
 
     // send just THIS round's points to the server; server aggregates
@@ -449,6 +462,8 @@ function onOutOfGuesses(correctYear) {
   const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
   answerEl.style.display = "block";
+const answerPanel = document.querySelector('.answer-panel');
+if (answerPanel) answerPanel.style.display = "block";
   answerEl.innerHTML = `
     <div style="margin-top:6px;">
       <strong>${showTitle}</strong>

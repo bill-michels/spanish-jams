@@ -8,111 +8,414 @@
   <link rel="stylesheet" href="/Styles/tokens.css" />
   <link rel="stylesheet" href="/Styles/ui.css" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <style>
-    .top-row {
-      align-items: flex-start;
-      gap: var(--space-4);
-    }
-    .panel.hero-panel,
-    .panel.auth-panel,
-    .panel.leaderboard-panel {
-      min-height: 36px !important;
-    }
-    .panel.hero-panel {
-      padding-top: 2px !important;
-      padding-bottom: 2px !important;
-    }
-    .panel.leaderboard-panel .panel-body {
-      max-height: 110px;
-      overflow-y: auto;
-    }
-    #fixedHeader {
-      padding-top: 0px;
-      padding-bottom: 0px;
-    }
-    #fixedHeader .play-wrap {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 4px;
-      margin: -6px 0 0 !important;
-      min-height: 20px;
-      width: 100%;
-    }
-    #fixedHeader #statusEl {
-      margin-top: 0 !important;
-    }
-  </style>
+<style>
+/* === MOBILE MENU === */
+#mobileMenuBtn,
+#mobileMenu {
+  display: none;
+}
+
+/* === HEADER LAYOUT === */
+#fixedHeader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 4px 0 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+#fixedHeader .header-inner {
+  padding: 4px 16px !important;
+  gap: 2px !important;
+}
+
+#fixedHeader .play-wrap {
+  margin: 0 !important;
+  gap: 2px !important;
+  min-height: auto !important;
+}
+
+#fixedHeader #statusEl {
+  margin-top: 0 !important;
+}
+
+/* === TOP ROW GRID === */
+.top-row {
+  display: grid !important;
+  grid-template-columns: 1fr 2fr 1fr !important;
+  gap: 8px !important;
+  align-items: start !important;
+}
+
+/* === HEADER PANELS === */
+.panel.auth-panel,
+.panel.hero-panel,
+.panel.leaderboard-panel {
+  min-height: 36px !important;
+  height: 280px !important;
+  background: rgba(139, 157, 175, 0.4) !important;
+  backdrop-filter: blur(8px) saturate(1.1) !important;
+}
+
+.panel.auth-panel,
+.panel.leaderboard-panel {
+  min-width: 0 !important;
+}
+
+/* === AUTH PANEL === */
+.panel.auth-panel .panel-head {
+  display: none !important;
+}
+
+.panel.auth-panel .panel-body {
+  padding: 2px 8px 8px 8px !important;
+}
+
+.panel.auth-panel label {
+  display: block;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #e36f4c !important;
+  margin-bottom: 4px !important;
+}
+
+.panel.auth-panel .input,
+.panel.auth-panel .btn {
+  height: 28px !important;
+  font-size: 14px !important;
+  padding: 4px 8px !important;
+}
+
+#signInStatusEl {
+  margin-bottom: 8px;
+}
+
+#authInputs {
+  display: block;
+  margin-bottom: 8px;
+}
+
+#authedPanel {
+  margin-top: 0 !important;
+}
+
+#authedPanel > div:first-child,
+#authedScoreLabel {
+  color: #e36f4c;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0px;
+}
+
+#authedUser,
+#authedScoreValue {
+  font-weight: 600;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-size: 1.0rem;
+  color: #111827;
+}
+
+#scoreHint {
+  display: none;
+  margin-top: 8px;
+}
+
+/* === HERO PANEL === */
+.panel.hero-panel {
+  padding: 0px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0px !important;
+}
+
+.panel.hero-panel img {
+  width: 80%;
+  height: auto;
+  max-height: 264px !important;
+  object-fit: cover;
+  border-radius: 0px;
+}
+
+/* === LEADERBOARD PANEL === */
+.panel.leaderboard-panel .panel-head {
+  padding: 4px 4px !important;
+}
+
+.panel.leaderboard-panel .tab-title {
+  color: #e36f4c;
+}
+
+.panel.leaderboard-panel .panel-body {
+  padding: 4px !important;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* === PLAY BUTTON SECTION === */
+.play-wrap {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+}
+
+#playBtn,
+#playAgainBtn {
+  margin: 0 4px !important;
+}
+
+#playAgainBtn {
+  display: none;
+}
+
+#jamAudio {
+  display: none;
+}
+
+/* === MAIN CONTENT === */
+main.app-main {
+  padding-top: 300px !important;
+}
+
+/* === MOBILE STYLES === */
+@media (max-width: 768px) {
+  /* Mobile menu button */
+  #mobileMenuBtn {
+    display: flex !important;
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 2000;
+    background: var(--mlb-primary);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Slide-out menu */
+  #mobileMenu {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 320px;
+    height: 100vh;
+    background: rgba(253, 248, 244, 0.98);
+    z-index: 1999;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    padding: 60px 20px 20px;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+  }
+
+  #mobileMenu.open {
+    right: 0;
+  }
+
+  #mobileMenuClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    color: var(--mlb-primary);
+  }
+
+  /* Hide desktop auth/leaderboard in header */
+  #fixedHeader .panel.auth-panel,
+  #fixedHeader .panel.leaderboard-panel {
+    display: none !important;
+  }
+
+  /* Reorder panels */
+  .top-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .panel.hero-panel {
+    order: 1;
+  }
+
+  .panel.auth-panel {
+    order: 3;
+  }
+
+  .panel.leaderboard-panel {
+    order: 3;
+  }
+
+  /* Panel sizing */
+  .panel.auth-panel,
+  .panel.hero-panel,
+  .panel.leaderboard-panel {
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  /* Hero panel compact */
+  .panel.hero-panel img {
+    max-height: 160px !important;
+  }
+
+  /* Leaderboard scrollable */
+  .panel.leaderboard-panel .panel-body {
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  /* Reduce header padding */
+  main.app-main {
+    padding-top: 200px !important;
+  }
+
+  /* Mobile menu content styling */
+  .mobile-auth label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--mlb-text-muted);
+  }
+
+  .mobile-auth .input {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .mobile-auth .btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .mobile-leaderboard ol {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+}
+</style>
 </head>
 <body>
-  <header id="fixedHeader" style="position:fixed; top:0; left:0; width:100%; background:var(--color-bg, #fff); z-index:1000;">
+  <!-- Mobile menu button (only visible on mobile) -->
+  <button id="mobileMenuBtn">☰</button>
+  
+  <!-- Mobile slide-out menu -->
+  <div id="mobileMenu">
+    <button id="mobileMenuClose">&times;</button>
+    
+    <!-- Auth panel clone -->
+    <div class="mobile-auth">
+      <h3 style="color: var(--mlb-primary); margin-bottom: 16px;">Sign In</h3>
+      <!-- Copy your auth form here -->
+      <div id="mobileAuthPanel" class="auth-login">
+        <form id="mobileAuthForm" class="auth-form">
+          <div>
+            <label for="mobileAuthName">Username</label>
+            <input id="mobileAuthName" class="input" type="text" placeholder="" autocomplete="username">
+            <label for="mobileAuthPass">Password</label>
+            <input id="mobileAuthPass" class="input" type="password" placeholder="" autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary" type="submit">Continue</button>
+        </form>
+      </div>
+      
+      <div id="mobileAuthedPanel" class="auth-logged" style="display:none;">
+        <div>Playing as:</div>
+        <div id="mobileAuthedUser">—</div>
+        <div>Score:</div>
+        <div id="mobileAuthedScore">0</div>
+        <button id="mobileLogoutBtn" class="btn">Logout</button>
+      </div>
+    </div>
+    
+    <!-- Leaderboard clone -->
+    <div class="mobile-leaderboard" style="margin-top: 24px;">
+      <h3 style="color: var(--mlb-primary); margin-bottom: 16px;">Leaderboard</h3>
+      <div id="mobileLeaderboardBody">
+        <p class="note">No scores yet.</p>
+      </div>
+    </div>
+  </div>
+  <header id="fixedHeader">
     <div class="container header-inner">
       <div class="top-row">
-        <section id="authPanel" class="panel auth-panel" style="flex:1; min-width:260px;">
+        <section id="authPanel" class="panel auth-panel">
           <div class="panel-head"><div class="tab-title">Sign In</div></div>
           <div class="panel-body">
-            <div id="signInStatusEl" class="note" style="margin-bottom:8px;"></div>
+            <div id="signInStatusEl" class="note"></div>
             <div id="authLoginPanel" class="auth-login">
               <form id="authForm" class="auth-form">
-                <div id="authInputs" style="display:block; margin-bottom:8px;">
-                  <label for="authName" style="display:block; font-size:12px; color:#6b7280; margin-bottom:4px;">Username</label>
-                  <input id="authName" class="input" type="text" placeholder="Choose a username" autocomplete="username">
-                  <label for="authPass" style="display:block; font-size:12px; color:#6b7280; margin-bottom:4px;">Password</label>
-                  <input id="authPass" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+                <div id="authInputs">
+                  <label for="authName">Username</label>
+                  <input id="authName" class="input" type="text" placeholder="" autocomplete="username">
+                  <label for="authPass">Password</label>
+                  <input id="authPass" class="input" type="password" placeholder="" autocomplete="current-password">
                 </div>
                 <button id="authContinueBtn" class="btn btn-primary btn-block" type="submit">Continue</button>
               </form>
             </div>
-            <div id="authedPanel" class="auth-logged" style="margin-top:4px;">
-              <div style="font-size:0.75rem; opacity:0.8; margin-bottom:2px;">Playing as:</div>
-              <div id="authedUser" style="font-weight:600; margin-bottom:4px;">—</div>
-              <div id="authedScore" style="font-size:0.8rem; margin-bottom:8px;">Score: 0</div>
+            <div id="authedPanel" class="auth-logged">
+              <div>Playing as:</div>
+              <div id="authedUser">—</div>
+              <div id="authedScoreLabel">Score:</div>
+             <div id="authedScoreValue">0</div>
               <button id="logoutBtn" class="btn btn-block" type="button">Logout</button>
             </div>
-            <p id="scoreHint" class="note" style="display:none; margin-top:8px;">Sign in to save your score on the leaderboard.</p>
+            <p id="scoreHint" class="note">Sign in to save your score on the leaderboard.</p>
           </div>
         </section>
 
-        <section class="panel hero-panel" id="heroPanel" style="flex:2; display:flex; align-items:center; justify-content:center;">
-          <h1 id="heroTitle" style="margin:0; padding:8px;">
-            <a href="/" style="color:inherit; text-decoration:none; cursor:pointer;">Mind Left Body Game</a>
-          </h1>
+        <section class="panel hero-panel" id="heroPanel">
+          <img src="/Images/hero image 2.png" alt="Mind Left Body Hero" />
+          <div class="play-wrap">
+            <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
+              <span class="label-default">Play</span>
+              <span class="label-loading" hidden>Finding a Jam</span>
+              <span class="label-playing" hidden>
+                <span class="transport" aria-hidden="true">⏯</span>
+                <span class="time"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
+              </span>
+            </button>
+            <button id="playAgainBtn" class="btn btn-secondary">Play</button>
+            <div id="statusEl" class="note"></div>
+            <audio id="jamAudio" preload="auto" crossorigin="anonymous"></audio>
+          </div>
         </section>
 
-        <section class="panel leaderboard-panel" style="flex:1; min-width:260px;">
+        <section class="panel leaderboard-panel">
           <div class="panel-head"><div class="tab-title">Leaderboard</div></div>
           <div class="panel-body" id="leaderboardBody">
             <p class="note">No scores yet.</p>
           </div>
         </section>
       </div>
-
-      <div class="play-wrap">
-        <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
-          <span class="label-default">Play</span>
-          <span class="label-loading" hidden>Find a Jam</span>
-          <span class="label-playing" hidden>
-            <span class="transport" aria-hidden="true">⏯</span>
-            <span class="time"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
-          </span>
-        </button>
-        <button id="playAgainBtn" class="btn btn-secondary" style="margin-left:8px; display:none;">
-          Play
-        </button>
-        <div id="statusEl" class="note"></div>
-        <audio id="jamAudio" preload="auto" crossorigin="anonymous" style="display:none"></audio>
-      </div>
     </div>
   </header>
 
+
   <main id="appMain" class="container app-main">
-    <section class="panel years-panel" style="margin:var(--space-6) 0;">
+    <section class="panel years-panel">
       <h4 style="text-align:center; margin:0 var(--space-0) var(--space-4);">Choose a Year</h4>
       <div id="yearGrid" class="years years-guess"></div>
     </section>
 
-    <section class="panel answer-panel" style="margin:var(--space-6) 0;">
+    <section class="panel answer-panel">
       <div id="answerEl"></div>
       <ol id="trackList" style="padding-left:20px; margin-top:var(--space-4);"></ol>
     </section>
@@ -127,5 +430,6 @@
 
   <script src="/game.js"></script>
   <script src="/app-auth.js" defer></script>
+  <script src="/mobile-menu.js"></script>
 </body>
 </html>
