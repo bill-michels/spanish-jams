@@ -9,7 +9,7 @@ console.log("BOOT: using", __filename);
 const path = require("path");
 const express = require("express");
 const cookieSession = require("cookie-session");
-const Database = require("better-sqlite3");
+const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const rateLimit = require('express-rate-limit');
 const helmet = require("helmet");
@@ -64,60 +64,53 @@ app.use('/api/', apiLimiter);
 // ---------- Static files ----------
 app.use(express.static(path.join(__dirname, "public")));
 
-// ---------- SQLite setup ----------
-const db = new Database(path.join(__dirname, "db.sqlite"));
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+// ---------- PostgreSQL setup ----------
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
-// Users table (username + password) and Scores table
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
-  )
-`).run();
+// Initialize database schema
+async function initDatabase() {
+  const client = await pool.connect();
+  try {
+    // Users table (username + password)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        display_name TEXT
+      )
+    `);
 
-// Enforce case-insensitive uniqueness at the database level
-db.prepare(`
-  CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase
-  ON users(lower(username))
-`).run();
+    // Enforce case-insensitive uniqueness at the database level
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase
+      ON users(lower(username))
+    `);
 
-// Note: usernames are normalized to lowercase in code for consistent lookups.
+    // Scores table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS scores (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        points INTEGER NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      )
+    `);
 
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS scores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    points INTEGER NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  )
-`).run();
-// add display_name if it doesn't exist yet
-try {
-  db.prepare(`ALTER TABLE users ADD COLUMN display_name TEXT`).run();
-} catch (e) {
-  // will throw if column already exists → ignore
+    console.log('Database schema initialized');
+  } catch (err) {
+    console.error('Database initialization error:', err);
+  } finally {
+    client.release();
+  }
 }
-// Prepared statements
-const getUserByName = db.prepare(`SELECT * FROM users WHERE username = ?`);
-const createUser    = db.prepare(`INSERT INTO users (username, password) VALUES (?, ?)`);
-const getUserById   = db.prepare(`SELECT * FROM users WHERE id = ?`);
-const insertScore   = db.prepare(`INSERT INTO scores (user_id, points) VALUES (?, ?)`);
 
-const topLeaderboard = db.prepare(`
-  SELECT
-    COALESCE(u.display_name, u.username) AS name,
-    SUM(s.points) AS total_points,
-    COUNT(*) AS games
-  FROM scores s
-  JOIN users u ON u.id = s.user_id
-  GROUP BY s.user_id
-  ORDER BY total_points DESC, games DESC, name ASC
-  LIMIT 20
-`);
+// Initialize database on startup
+initDatabase().catch(console.error);
 // ---------- Rate limiting for auth endpoints ----------
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -271,16 +264,19 @@ app.post("/api/register", authLimiter, express.json(), async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     try {
-      // insert canonical
-      const info = createUser.run(uname, hashed);
+      const result = await pool.query(
+        'INSERT INTO users (username, password, display_name) VALUES ($1, $2, $3) RETURNING id',
+        [uname, hashed, displayName]
+      );
 
-      // store pretty version
-      db.prepare(`UPDATE users SET display_name = ? WHERE id = ?`).run(displayName, info.lastInsertRowid);
-
-      req.session.userId = info.lastInsertRowid;
-      res.json({ success: true, user: { id: info.lastInsertRowid, username: displayName } });
+      const userId = result.rows[0].id;
+      req.session.userId = userId;
+      res.json({ success: true, user: { id: userId, username: displayName } });
     } catch (e) {
-      return res.status(409).json({ error: "Username already taken" });
+      if (e.code === '23505') { // unique violation
+        return res.status(409).json({ error: "Username already taken" });
+      }
+      throw e;
     }
   } catch (e) {
     console.error("register failed:", e);
@@ -302,35 +298,37 @@ app.post("/api/login", authLimiter, express.json(), async (req, res) => {
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    const user = getUserByName.get(uname);
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [uname]);
+    const user = result.rows[0];
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
     req.session.userId = user.id;
-   const shownName = user.display_name || user.username;
-res.json({ success: true, user: { id: user.id, username: shownName } });
+    const shownName = user.display_name || user.username;
+    res.json({ success: true, user: { id: user.id, username: shownName } });
   } catch (e) {
     console.error("login failed:", e);
     res.status(500).json({ error: "Login failed" });
   }
 });
 
-app.get("/api/me", (req, res) => {
+app.get("/api/me", async (req, res) => {
   try {
     const id = req.session?.userId;
     console.log("/api/me → session.userId =", id);
     if (!id) {
       return res.json({ user: null });
     }
-    const user = getUserById.get(id);
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    const user = result.rows[0];
     if (!user) {
       console.log(`/api/me → no user found for id ${id}`);
       return res.json({ user: null });
     }
     const shownName = user.display_name || user.username;
-res.json({ user: { id: user.id, username: shownName, name: shownName } });
+    res.json({ user: { id: user.id, username: shownName, name: shownName } });
   } catch (err) {
     console.error("/api/me failed:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -343,7 +341,7 @@ app.post("/api/logout", (req, res) => {
 });
 
 // ---------- Score & Leaderboard ----------
-app.post('/api/score', (req, res) => {
+app.post('/api/score', async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Not signed in' });
   }
@@ -368,11 +366,10 @@ app.post('/api/score', (req, res) => {
 
   const userId = req.session.userId;
   try {
-    const stmt = db.prepare(`
-      INSERT INTO scores (user_id, points)
-      VALUES (?, ?)
-    `);
-    stmt.run(userId, numericScore);
+    await pool.query(
+      'INSERT INTO scores (user_id, points) VALUES ($1, $2)',
+      [userId, numericScore]
+    );
   } catch (err) {
     console.error('/api/score insert failed:', err);
     return res.status(500).json({ error: 'failed to save score' });
@@ -381,14 +378,30 @@ app.post('/api/score', (req, res) => {
   return res.json({ ok: true });
 });
 
-app.get("/api/leaderboard", (_req, res) => {
-  const rows = topLeaderboard.all();
-  const leaderboard = rows.map(r => ({
-    username: r.name,
-    points: r.total_points,
-    games: r.games
-  }));
-  res.json({ leaderboard });
+app.get("/api/leaderboard", async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COALESCE(u.display_name, u.username) AS name,
+        SUM(s.points) AS total_points,
+        COUNT(*) AS games
+      FROM scores s
+      JOIN users u ON u.id = s.user_id
+      GROUP BY s.user_id, u.display_name, u.username
+      ORDER BY total_points DESC, games DESC, name ASC
+      LIMIT 20
+    `);
+
+    const leaderboard = result.rows.map(r => ({
+      username: r.name,
+      points: parseInt(r.total_points),
+      games: parseInt(r.games)
+    }));
+    res.json({ leaderboard });
+  } catch (err) {
+    console.error('/api/leaderboard failed:', err);
+    res.status(500).json({ error: 'Failed to load leaderboard' });
+  }
 });
 
 // ---------- Simple browse (HTML pages for dev convenience) ----------
