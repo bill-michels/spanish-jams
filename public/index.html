@@ -80,7 +80,7 @@
   display: block;
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #e36f4c !important;
+  color: #5B8FA3 !important;
   margin-bottom: 4px !important;
 }
 
@@ -106,7 +106,7 @@
 
 #authedPanel > div:first-child,
 #authedScoreLabel {
-  color: #e36f4c;
+  color: #5B8FA3;
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 0px;
@@ -128,20 +128,26 @@
 
 /* === HERO PANEL === */
 .panel.hero-panel {
-  padding: 0px !important;
+  padding: 8px 0 0 0 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: center !important;
+  justify-content: space-between !important;
   gap: 0px !important;
 }
 
-.panel.hero-panel img {
+.panel.hero-panel a {
+  display: block;
   width: 80%;
+}
+
+.panel.hero-panel img {
+  width: 100%;
   height: auto;
-  max-height: 264px !important;
-  object-fit: cover;
+  max-height: 220px !important;
+  object-fit: contain;
   border-radius: 0px;
+  cursor: pointer;
 }
 
 /* === LEADERBOARD PANEL === */
@@ -150,7 +156,7 @@
 }
 
 .panel.leaderboard-panel .tab-title {
-  color: #e36f4c;
+  color: #5B8FA3;
 }
 
 .panel.leaderboard-panel .panel-body {
@@ -164,6 +170,9 @@
   flex-direction: row !important;
   flex-wrap: wrap !important;
   justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 0 20px 0 !important;
+  width: 100% !important;
 }
 
 #playBtn,
@@ -182,6 +191,154 @@
 /* === MAIN CONTENT === */
 main.app-main {
   padding-top: 300px !important;
+}
+
+/* === GAME CONTENT GRID === */
+.game-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* === INSTAGRAM PANEL === */
+.panel.instagram-panel {
+  background: rgba(139, 157, 175, 0.4);
+  backdrop-filter: blur(8px) saturate(1.1);
+}
+
+.panel.instagram-panel .panel-head {
+  padding: 4px 12px;
+  text-align: center;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel.instagram-panel .panel-head .tab-title {
+  color: #5B8FA3;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.panel.instagram-panel .panel-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.instagram-link {
+  text-decoration: none;
+  width: 100%;
+  display: block;
+}
+
+.instagram-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.instagram-card:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stretch-logo {
+  width: 120px;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+}
+
+.instagram-info {
+  text-align: center;
+}
+
+.instagram-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.instagram-info p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.instagram-cta {
+  display: inline-block;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #FD5 0%, #FF543E 50%, #C837AB 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+
+.instagram-card:hover .instagram-cta {
+  transform: scale(1.05);
+}
+
+/* === RIGHT PANEL === */
+.panel.right-panel {
+  background: rgba(139, 157, 175, 0.4);
+  backdrop-filter: blur(8px) saturate(1.1);
+}
+
+.panel.right-panel .panel-head {
+  padding: 4px 12px;
+  text-align: center;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel.right-panel .panel-head .tab-title {
+  color: #5B8FA3;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.panel.right-panel .panel-body {
+  padding: 12px;
+}
+
+/* === YEAR GRID ADJUSTMENTS === */
+section.panel.years-panel {
+  margin: 0 0 var(--space-6) 0 !important;
+  padding: 12px !important;
+}
+
+.years-guess {
+  grid-template-columns: repeat(5, 1fr) !important;
+}
+
+.years-guess button {
+  padding: 8px 0 !important;
+  font-size: 14px !important;
+}
+
+/* === PLAY BUTTON === */
+#playBtn {
+  min-width: 300px !important;
+  padding: 12px 24px !important;
 }
 
 /* === MOBILE STYLES === */
@@ -286,6 +443,29 @@ main.app-main {
     padding-top: 200px !important;
   }
 
+  /* Stack game content vertically on mobile */
+  .game-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .panel.instagram-panel {
+    order: 2;
+  }
+
+  .panel.years-panel {
+    order: 1;
+  }
+
+  .panel.right-panel {
+    order: 3;
+  }
+
+  /* Restore mobile year grid */
+  .years-guess {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+
   /* Mobile menu content styling */
   .mobile-auth label {
     display: block;
@@ -382,7 +562,9 @@ main.app-main {
         </section>
 
         <section class="panel hero-panel" id="heroPanel">
-          <img src="/Images/hero-image-2.png" alt="Mind Left Body Hero" />
+          <a href="/">
+            <img src="/Images/hero-image-2.png" alt="Mind Left Body Hero" />
+          </a>
           <div class="play-wrap">
             <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
               <span class="label-default">Play</span>
@@ -410,15 +592,44 @@ main.app-main {
 
 
   <main id="appMain" class="container app-main">
-    <section class="panel years-panel">
-      <h4 style="text-align:center; margin:0 var(--space-0) var(--space-4);">Choose a Year</h4>
-      <div id="yearGrid" class="years years-guess"></div>
-    </section>
+    <div class="game-content">
+      <section class="panel instagram-panel">
+        <div class="panel-head">
+          <div class="tab-title">Check out our Sponsor:</div>
+        </div>
+        <div class="panel-body">
+          <a href="https://www.instagram.com/stretchpizzanyc/" target="_blank" rel="noopener noreferrer" class="instagram-link">
+            <div class="instagram-card">
+              <img src="/Images/stretch-logo.png" alt="Stretch Pizza NYC" class="stretch-logo" />
+              <div class="instagram-info">
+                <h3>Stretch Pizza NYC</h3>
+                <p>@stretchpizzanyc</p>
+                <span class="instagram-cta">Follow on Instagram →</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
 
-    <section class="panel answer-panel">
-      <div id="answerEl"></div>
-      <ol id="trackList" style="padding-left:20px; margin-top:var(--space-4);"></ol>
-    </section>
+      <div>
+        <section class="panel years-panel">
+          <div id="yearGrid" class="years years-guess"></div>
+        </section>
+
+        <section class="panel answer-panel">
+          <div id="answerEl"></div>
+          <ol id="trackList" style="padding-left:20px; margin-top:var(--space-4);"></ol>
+        </section>
+      </div>
+
+      <section class="panel right-panel">
+        <div class="panel-head">
+          <div class="tab-title"></div>
+        </div>
+        <div class="panel-body">
+        </div>
+      </section>
+    </div>
 
     <section id="bottom-show" class="panel" style="margin:var(--space-6) 0; display:none;">
       <div class="panel-head"><div class="tab-title">Now Playing</div></div>
