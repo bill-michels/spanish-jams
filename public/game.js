@@ -21,8 +21,17 @@ console.log("jamAudio element:", jamAudio);
   const labelDefault = playBtn.querySelector(".label-default");
   const labelLoading = playBtn.querySelector(".label-loading");
   const labelPlaying = playBtn.querySelector(".label-playing");
+  const labelPaused = playBtn.querySelector(".label-paused");
+  const labelRoundEnd = playBtn.querySelector(".label-round-end");
+  const labelRoundEndPaused = playBtn.querySelector(".label-round-end-paused");
   const elapsedSpan  = document.getElementById("elapsed");
   const durationSpan = document.getElementById("duration");
+  const elapsedPausedSpan  = document.getElementById("elapsedPaused");
+  const durationPausedSpan = document.getElementById("durationPaused");
+  const elapsedEndSpan = document.getElementById("elapsedEnd");
+  const elapsedEndPausedSpan = document.getElementById("elapsedEndPaused");
+  const progressBar = document.getElementById("progressBar");
+  const progressBarPaused = document.getElementById("progressBarPaused");
 
   function formatTime(sec) {
     if (!isFinite(sec) || sec < 0) return "0:00";
@@ -35,7 +44,7 @@ console.log("jamAudio element:", jamAudio);
     if (!playBtn) return;
     playBtn.dataset.state = state;
     if (state === "idle") {
-      if (!labelDefault || !labelLoading || !labelPlaying) return;
+      if (!labelDefault || !labelLoading || !labelPlaying || !labelPaused) return;
 
       // Idle = either initial state OR paused mid-jam.
       // Show "Resume" only when there's progress in the current clip
@@ -50,14 +59,44 @@ console.log("jamAudio element:", jamAudio);
       labelDefault.hidden = false;
       labelLoading.hidden = true;
       labelPlaying.hidden = true;
+      labelPaused.hidden = true;
+      if (labelRoundEnd) labelRoundEnd.hidden = true;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = true;
     } else if (state === "loading") {
       labelDefault.hidden = true;
       labelLoading.hidden = false;
       labelPlaying.hidden = true;
+      labelPaused.hidden = true;
+      if (labelRoundEnd) labelRoundEnd.hidden = true;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = true;
     } else if (state === "playing") {
       labelDefault.hidden = true;
       labelLoading.hidden = true;
       labelPlaying.hidden = false;
+      labelPaused.hidden = true;
+      if (labelRoundEnd) labelRoundEnd.hidden = true;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = true;
+    } else if (state === "paused") {
+      labelDefault.hidden = true;
+      labelLoading.hidden = true;
+      labelPlaying.hidden = true;
+      labelPaused.hidden = false;
+      if (labelRoundEnd) labelRoundEnd.hidden = true;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = true;
+    } else if (state === "round-end") {
+      labelDefault.hidden = true;
+      labelLoading.hidden = true;
+      labelPlaying.hidden = true;
+      labelPaused.hidden = true;
+      if (labelRoundEnd) labelRoundEnd.hidden = false;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = true;
+    } else if (state === "round-end-paused") {
+      labelDefault.hidden = true;
+      labelLoading.hidden = true;
+      labelPlaying.hidden = true;
+      labelPaused.hidden = true;
+      if (labelRoundEnd) labelRoundEnd.hidden = true;
+      if (labelRoundEndPaused) labelRoundEndPaused.hidden = false;
     }
   }
 
@@ -69,26 +108,169 @@ console.log("jamAudio element:", jamAudio);
 
   // keep transport UI in sync with audio element
   jamAudio.addEventListener("timeupdate", () => {
-    if (!elapsedSpan || !durationSpan) return;
-    elapsedSpan.textContent = formatTime(jamAudio.currentTime || 0);
-    durationSpan.textContent = formatTime(jamAudio.duration || 0);
-  });
-  jamAudio.addEventListener("loadedmetadata", () => {
-    if (!durationSpan) return;
-    durationSpan.textContent = formatTime(jamAudio.duration || 0);
-  });
-  jamAudio.addEventListener("play", () => {
-    setPlayState("playing");
-  });
-  jamAudio.addEventListener("pause", () => {
-    // when paused (not ended), show idle label so button reads as Play
-    if (!jamAudio.ended) {
-      setPlayState("idle");
+    const currentTime = jamAudio.currentTime || 0;
+    const duration = jamAudio.duration || 0;
+
+    // Update time displays
+    if (elapsedSpan) elapsedSpan.textContent = formatTime(currentTime);
+    if (durationSpan) durationSpan.textContent = formatTime(duration);
+    if (elapsedPausedSpan) elapsedPausedSpan.textContent = formatTime(currentTime);
+    if (durationPausedSpan) durationPausedSpan.textContent = formatTime(duration);
+    if (elapsedEndSpan) elapsedEndSpan.textContent = formatTime(currentTime);
+    if (elapsedEndPausedSpan) elapsedEndPausedSpan.textContent = formatTime(currentTime);
+
+    // Update progress bars (only during round, not at end)
+    if (duration > 0 && !roundOver) {
+      const progress = (currentTime / duration) * 100;
+      if (progressBar) {
+        progressBar.value = progress;
+        progressBar.style.setProperty('--progress', progress + '%');
+      }
+      if (progressBarPaused) {
+        progressBarPaused.value = progress;
+        progressBarPaused.style.setProperty('--progress', progress + '%');
+      }
     }
   });
+
+  jamAudio.addEventListener("loadedmetadata", () => {
+    const duration = jamAudio.duration || 0;
+    if (durationSpan) durationSpan.textContent = formatTime(duration);
+    if (durationPausedSpan) durationPausedSpan.textContent = formatTime(duration);
+  });
+
+  jamAudio.addEventListener("play", () => {
+    // If round is over, switch to end-of-round state
+    if (roundOver) {
+      setPlayState("round-end");
+    } else {
+      setPlayState("playing");
+    }
+  });
+
+  // Track if user is scrubbing
+  let isScrubbing = false;
+
+  jamAudio.addEventListener("pause", () => {
+    // Only show paused state if not scrubbing and not ended
+    if (!jamAudio.ended && !isScrubbing) {
+      // If round is over, switch to end-of-round paused state
+      if (roundOver) {
+        setPlayState("round-end-paused");
+      } else {
+        setPlayState("paused");
+      }
+    }
+  });
+
   jamAudio.addEventListener("ended", () => {
     setPlayState("idle");
   });
+
+  // Progress bar scrubbing
+  if (progressBar) {
+    let wasPlaying = false;
+
+    // Prevent clicks on progress bar from triggering button click
+    progressBar.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    progressBar.addEventListener("mousedown", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = true;
+      wasPlaying = !jamAudio.paused;
+    });
+
+    progressBar.addEventListener("mouseup", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = false;
+      // Resume playing if it was playing before scrubbing
+      if (wasPlaying && jamAudio.paused) {
+        jamAudio.play().catch(() => {});
+      }
+    });
+
+    progressBar.addEventListener("input", (e) => {
+      e.stopPropagation(); // Prevent button click
+      const duration = jamAudio.duration;
+      if (duration > 0) {
+        const seekTime = (progressBar.value / 100) * duration;
+        jamAudio.currentTime = seekTime;
+      }
+    });
+
+    progressBar.addEventListener("change", (e) => {
+      e.stopPropagation(); // Prevent button click
+    });
+
+    // Handle touch events for mobile
+    progressBar.addEventListener("touchstart", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = true;
+      wasPlaying = !jamAudio.paused;
+    });
+
+    progressBar.addEventListener("touchend", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = false;
+      if (wasPlaying && jamAudio.paused) {
+        jamAudio.play().catch(() => {});
+      }
+    });
+  }
+
+  if (progressBarPaused) {
+    let wasPlayingPaused = false;
+
+    // Prevent clicks on progress bar from triggering button click
+    progressBarPaused.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    progressBarPaused.addEventListener("mousedown", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = true;
+      wasPlayingPaused = !jamAudio.paused;
+    });
+
+    progressBarPaused.addEventListener("mouseup", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = false;
+      // Resume playing if it was playing before scrubbing
+      if (wasPlayingPaused && jamAudio.paused) {
+        jamAudio.play().catch(() => {});
+      }
+    });
+
+    progressBarPaused.addEventListener("input", (e) => {
+      e.stopPropagation(); // Prevent button click
+      const duration = jamAudio.duration;
+      if (duration > 0) {
+        const seekTime = (progressBarPaused.value / 100) * duration;
+        jamAudio.currentTime = seekTime;
+      }
+    });
+
+    progressBarPaused.addEventListener("change", (e) => {
+      e.stopPropagation(); // Prevent button click
+    });
+
+    // Handle touch events for mobile
+    progressBarPaused.addEventListener("touchstart", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = true;
+      wasPlayingPaused = !jamAudio.paused;
+    });
+
+    progressBarPaused.addEventListener("touchend", (e) => {
+      e.stopPropagation(); // Prevent button click
+      isScrubbing = false;
+      if (wasPlayingPaused && jamAudio.paused) {
+        jamAudio.play().catch(() => {});
+      }
+    });
+  }
 
 // Auto-start logic removed: inline transport + loadRandomClip() are triggered from the guarded Play button listener below.
 
@@ -104,7 +286,11 @@ console.log("jamAudio element:", jamAudio);
     Array.from(yearGrid.querySelectorAll("button")).forEach(b => { b.disabled = !enabled; });
   }
   function clearUsedMarks() {
-    Array.from(yearGrid.querySelectorAll("button")).forEach(b => b.classList.remove("used"));
+    Array.from(yearGrid.querySelectorAll("button")).forEach(b => {
+      b.classList.remove("used");
+      // Reset button text back to the year number
+      b.textContent = b.dataset.year;
+    });
   }
   function cleanShowTitle(title, date, venue) {
     const raw = title || `${(date || "").split("T")[0]} — ${venue || ""}`;
@@ -308,7 +494,7 @@ if (answerPanel) answerPanel.style.display = "none";
           jamAudio.play().catch(err => {
   console.error('[audio] play() failed', err);
 });
-          statusEl.textContent = "Guess 1 of 3: Pick a year.";
+          statusEl.textContent = "";
           jamAudio.style.display = "block";
           setButtonsEnabled(true);
         };
@@ -331,6 +517,13 @@ window.startRound = function(){ console.log('[round] startRound() called'); load
 playBtn.disabled = false;
   playBtn.addEventListener("click", (e) => {
     e.preventDefault();
+
+    // Don't toggle play/pause if clicking on the progress bar
+    if (e.target.classList.contains('progress-bar') ||
+        e.target.id === 'progressBar' ||
+        e.target.id === 'progressBarPaused') {
+      return;
+    }
 
     // If we already have audio, this button is pure Play/Pause transport.
     if (jamAudio.src) {
@@ -365,10 +558,27 @@ playBtn.disabled = false;
     btn.disabled = true;
 
     if (guess === correct) {
+      // Correct guess - show feedback with points
+      let points = 0;
+      let feedback = "";
+      if (guessCount === 1) {
+        points = 3;
+        feedback = "3pts";
+      } else if (guessCount === 2) {
+        points = 2;
+        feedback = "2pts";
+      } else if (guessCount === 3) {
+        points = 1;
+        feedback = "1pt";
+      }
+      btn.textContent = feedback;
       onWin();
     } else if (guessCount < MAX_GUESSES) {
-      statusEl.textContent = `Guess ${guessCount} wrong. Try again — ${MAX_GUESSES - guessCount} left.`;
+      // Incorrect guess - show "Nope"
+      btn.textContent = "Nope";
     } else {
+      // Final incorrect guess - show "0pts"
+      btn.textContent = "0pts";
       onOutOfGuesses(correct);
     }
   });
@@ -376,7 +586,6 @@ playBtn.disabled = false;
   function onWin() {
     roundOver = true;                        // lock the round
     setButtonsEnabled(false);
-    statusEl.textContent = `You nailed it on guess ${guessCount}!`;
 
     const showTitle = cleanShowTitle(current.title, current.date, current.venue);
     const trackName = (current.file && (current.file.title || current.file.name)) || "";
@@ -450,13 +659,23 @@ if (answerPanel) answerPanel.style.display = "block";
 
     if (playAgainBtn) {
       playAgainBtn.style.display = "inline-flex";
+      playAgainBtn.dataset.visible = "true";
+    }
+    if (playBtn) {
+      playBtn.dataset.roundOver = "true";
+    }
+
+    // Switch to end-of-round state
+    if (!jamAudio.paused) {
+      setPlayState("round-end");
+    } else {
+      setPlayState("round-end-paused");
     }
   }
 
 function onOutOfGuesses(correctYear) {
   roundOver = true;                        // lock the round
   setButtonsEnabled(false);
-  statusEl.textContent = `Out of guesses. The correct year was ${correctYear}.`;
 
   const showTitle = cleanShowTitle(current.title, current.date, current.venue);
   const trackName = (current.file && (current.file.title || current.file.name)) || "";
@@ -506,6 +725,17 @@ if (answerPanel) answerPanel.style.display = "block";
 
   if (playAgainBtn) {
     playAgainBtn.style.display = "inline-flex";
+    playAgainBtn.dataset.visible = "true";
+  }
+  if (playBtn) {
+    playBtn.dataset.roundOver = "true";
+  }
+
+  // Switch to end-of-round state
+  if (!jamAudio.paused) {
+    setPlayState("round-end");
+  } else {
+    setPlayState("round-end-paused");
   }
 }
 
@@ -584,6 +814,10 @@ if (answerPanel) answerPanel.style.display = "block";
       roundOver = false;
       loadRandomClip();
       playAgainBtn.style.display = "none";
+      playAgainBtn.dataset.visible = "false";
+      if (playBtn) {
+        playBtn.dataset.roundOver = "false";
+      }
     });
   }
 });

@@ -42,6 +42,7 @@
 
 #fixedHeader #statusEl {
   margin-top: 0 !important;
+  min-height: 1.5em;
 }
 
 /* === TOP ROW GRID === */
@@ -163,6 +164,30 @@
   padding: 4px !important;
   max-height: 220px;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.panel.leaderboard-panel .panel-body ol {
+  list-style-position: inside;
+}
+
+.panel.leaderboard-panel .panel-body ol li {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.panel.leaderboard-panel .panel-body ol li .lb-name {
+  display: inline-block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.panel.leaderboard-panel .panel-body ol li strong {
+  white-space: nowrap;
 }
 
 /* === PLAY BUTTON SECTION === */
@@ -182,6 +207,8 @@
 
 #playAgainBtn {
   display: none;
+  min-width: 300px !important;
+  padding: 12px 24px !important;
 }
 
 #jamAudio {
@@ -190,7 +217,7 @@
 
 /* === MAIN CONTENT === */
 main.app-main {
-  padding-top: 300px !important;
+  padding-top: 330px !important;
 }
 
 /* === GAME CONTENT GRID === */
@@ -324,6 +351,8 @@ main.app-main {
 section.panel.years-panel {
   margin: 0 0 var(--space-6) 0 !important;
   padding: 12px !important;
+  position: relative;
+  z-index: 1;
 }
 
 .years-guess {
@@ -338,7 +367,157 @@ section.panel.years-panel {
 /* === PLAY BUTTON === */
 #playBtn {
   min-width: 300px !important;
-  padding: 12px 24px !important;
+  max-width: 300px !important;
+  padding: 12px 12px !important;
+  transform: scale(1.03) !important;
+}
+
+#playBtn:hover {
+  transform: scale(1.03) !important;
+}
+
+/* Play status display with progress bar */
+.play-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Status row - everything in one horizontal line */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 100%;
+}
+
+.time-display {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 65px;
+}
+
+.paused-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 42px;
+  text-align: left;
+  display: inline-block;
+}
+
+.transport-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 42px;
+  text-align: left;
+  display: inline-block;
+}
+
+.progress-bar {
+  flex: 1;
+  min-width: 80px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+  cursor: pointer;
+  outline: none;
+  margin-left: auto;
+}
+
+.progress-bar::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(to right,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.9) var(--progress, 0%),
+    rgba(255, 255, 255, 0.3) var(--progress, 0%),
+    rgba(255, 255, 255, 0.3) 100%);
+  border-radius: 3px;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  margin-top: -4px;
+}
+
+.progress-bar::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+.progress-bar::-moz-range-progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* End of round label styles */
+.label-round-end,
+.label-round-end-paused {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Ensure hidden attribute works */
+[hidden] {
+  display: none !important;
+}
+
+.time-display-end {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.paused-text-end {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+}
+
+/* When round is over, resize buttons */
+#playBtn[data-round-over="true"] {
+  min-width: 140px !important;
+  max-width: 148px !important;
+}
+
+#playAgainBtn[data-visible="true"] {
+  min-width: 140px !important;
+  max-width: 148px !important;
 }
 
 /* === MOBILE STYLES === */
@@ -400,6 +579,16 @@ section.panel.years-panel {
     display: none !important;
   }
 
+  /* Mobile header positioning */
+  #fixedHeader {
+    top: 40px !important;
+    padding: 4px 16px !important;
+  }
+
+  #fixedHeader .header-inner {
+    padding: 0 !important;
+  }
+
   /* Reorder panels */
   .top-row {
     display: flex !important;
@@ -409,6 +598,8 @@ section.panel.years-panel {
 
   .panel.hero-panel {
     order: 1;
+    width: 100% !important;
+    margin: 0 auto !important;
   }
 
   .panel.auth-panel {
@@ -432,15 +623,51 @@ section.panel.years-panel {
     max-height: 160px !important;
   }
 
+  /* Play wrap container on mobile */
+  .play-wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  /* Play button mobile sizing */
+  #playBtn {
+    min-width: auto !important;
+    width: 90% !important;
+    max-width: 90% !important;
+  }
+
+  /* End of round buttons side-by-side on mobile */
+  #playBtn[data-round-over="true"] {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: calc(50% - 4px) !important;
+    flex: 1 !important;
+  }
+
+  #playAgainBtn[data-visible="true"] {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: calc(50% - 4px) !important;
+    flex: 1 !important;
+  }
+
+  /* Hide status text on mobile */
+  #statusEl {
+    display: none !important;
+  }
+
   /* Leaderboard scrollable */
   .panel.leaderboard-panel .panel-body {
     max-height: 150px;
     overflow-y: auto;
   }
 
-  /* Reduce header padding */
+  /* Reduce header padding - increase space to prevent overlap */
   main.app-main {
-    padding-top: 200px !important;
+    padding-top: 300px !important;
   }
 
   /* Stack game content vertically on mobile */
@@ -464,6 +691,12 @@ section.panel.years-panel {
   /* Restore mobile year grid */
   .years-guess {
     grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .years-guess button {
+    font-size: 13px !important;
+    padding: 6px 2px !important;
   }
 
   /* Mobile menu content styling */
@@ -507,7 +740,7 @@ section.panel.years-panel {
         <form id="mobileAuthForm" class="auth-form">
           <div>
             <label for="mobileAuthName">Username</label>
-            <input id="mobileAuthName" class="input" type="text" placeholder="" autocomplete="username">
+            <input id="mobileAuthName" class="input" type="text" placeholder="" autocomplete="username" maxlength="16">
             <label for="mobileAuthPass">Password</label>
             <input id="mobileAuthPass" class="input" type="password" placeholder="" autocomplete="current-password">
           </div>
@@ -543,7 +776,7 @@ section.panel.years-panel {
               <form id="authForm" class="auth-form">
                 <div id="authInputs">
                   <label for="authName">Username</label>
-                  <input id="authName" class="input" type="text" placeholder="" autocomplete="username">
+                  <input id="authName" class="input" type="text" placeholder="" autocomplete="username" maxlength="16">
                   <label for="authPass">Password</label>
                   <input id="authPass" class="input" type="password" placeholder="" autocomplete="current-password">
                 </div>
@@ -570,11 +803,32 @@ section.panel.years-panel {
               <span class="label-default">Play</span>
               <span class="label-loading" hidden>Finding a Jam</span>
               <span class="label-playing" hidden>
-                <span class="transport" aria-hidden="true">⏯</span>
-                <span class="time"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
+                <div class="play-status">
+                  <div class="status-row">
+                    <span class="transport-icon" aria-hidden="true">⏯</span>
+                    <span class="time-display"><span id="elapsed">0:00</span> / <span id="duration">0:00</span></span>
+                    <input type="range" id="progressBar" class="progress-bar" min="0" max="100" value="0" step="0.1">
+                  </div>
+                </div>
+              </span>
+              <span class="label-paused" hidden>
+                <div class="play-status">
+                  <div class="status-row">
+                    <span class="paused-text">Paused</span>
+                    <span class="time-display"><span id="elapsedPaused">0:00</span> / <span id="durationPaused">0:00</span></span>
+                    <input type="range" id="progressBarPaused" class="progress-bar" min="0" max="100" value="0" step="0.1">
+                  </div>
+                </div>
+              </span>
+              <span class="label-round-end" hidden>
+                <span class="time-display-end"><span id="elapsedEnd">0:00</span></span>
+              </span>
+              <span class="label-round-end-paused" hidden>
+                <span class="paused-text-end">Paused</span>
+                <span class="time-display-end"><span id="elapsedEndPaused">0:00</span></span>
               </span>
             </button>
-            <button id="playAgainBtn" class="btn btn-secondary">Play</button>
+            <button id="playAgainBtn" class="btn btn-secondary">Play Again</button>
             <div id="statusEl" class="note"></div>
             <audio id="jamAudio" preload="auto" crossorigin="anonymous"></audio>
           </div>
