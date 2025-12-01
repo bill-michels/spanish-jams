@@ -673,13 +673,15 @@ section.panel.years-panel {
   /* Shorter instruction text on mobile */
   .game-rules {
     font-size: 0 !important;
+    margin: 6px 0 6px 0;
   }
 
-  .game-rules::before {
+  .game-rules::after {
     content: "Play, guess year — 3pts, 2pts, 1pt";
     font-size: 12px;
     font-style: italic;
     color: #111827;
+    display: block;
   }
 
   /* Leaderboard scrollable */
