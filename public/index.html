@@ -58,7 +58,7 @@
 .panel.hero-panel,
 .panel.leaderboard-panel {
   min-height: 36px !important;
-  height: 280px !important;
+  height: 310px !important;
   background: rgba(139, 157, 175, 0.4) !important;
   backdrop-filter: blur(8px) saturate(1.1) !important;
 }
@@ -122,6 +122,14 @@
   color: #111827;
 }
 
+.game-rules {
+  text-align: center;
+  font-style: italic;
+  color: #111827;
+  font-size: 14px;
+  margin: 8px 0 8px 0;
+}
+
 #scoreHint {
   display: none;
   margin-top: 8px;
@@ -140,6 +148,9 @@
 .panel.hero-panel a {
   display: block;
   width: 80%;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
 }
 
 .panel.hero-panel img {
@@ -217,7 +228,7 @@
 
 /* === MAIN CONTENT === */
 main.app-main {
-  padding-top: 330px !important;
+  padding-top: 360px !important;
 }
 
 /* === GAME CONTENT GRID === */
@@ -659,6 +670,18 @@ section.panel.years-panel {
     display: none !important;
   }
 
+  /* Shorter instruction text on mobile */
+  .game-rules {
+    font-size: 0 !important;
+  }
+
+  .game-rules::before {
+    content: "Play, guess year — 3pts, 2pts, 1pt";
+    font-size: 12px;
+    font-style: italic;
+    color: #111827;
+  }
+
   /* Leaderboard scrollable */
   .panel.leaderboard-panel .panel-body {
     max-height: 150px;
@@ -798,6 +821,7 @@ section.panel.years-panel {
           <a href="/">
             <img src="/Images/hero-image-2.png" alt="Mind Left Body Hero" />
           </a>
+          <p class="game-rules">Press Play, guess the year — 3 tries: 3pts, 2pts, or 1pt</p>
           <div class="play-wrap">
             <button id="playBtn" class="btn btn-primary" data-state="idle" aria-live="polite">
               <span class="label-default">Play</span>
