@@ -254,8 +254,8 @@ app.post("/api/register", authLimiter, express.json(), async (req, res) => {
     const displayName = username.trim();         // what they typed
     const uname = displayName.toLowerCase();     // canonical
 
-    if (uname.length < 3 || uname.length > 24) {
-      return res.status(400).json({ error: "Username must be 3–24 characters" });
+    if (uname.length < 2 || uname.length > 24) {
+      return res.status(400).json({ error: "Username must be 2–24 characters" });
     }
     if (password.length < 6 || password.length > 128) {
       return res.status(400).json({ error: "Password must be 6–128 characters" });
@@ -291,7 +291,7 @@ app.post("/api/login", authLimiter, express.json(), async (req, res) => {
       return res.status(400).json({ error: "Username and password required" });
     }
     const uname = username.trim().toLowerCase();
-    if (uname.length < 3 || uname.length > 24) {
+    if (uname.length < 2 || uname.length > 24) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
     if (password.length < 6 || password.length > 128) {
