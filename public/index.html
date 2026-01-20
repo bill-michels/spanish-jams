@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="/Styles/tokens.css" />
   <link rel="stylesheet" href="/Styles/ui.css" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5226913770398471"
+     crossorigin="anonymous"></script>
 <style>
 /* === MOBILE MENU === */
 #mobileMenuBtn,
@@ -356,6 +360,19 @@ main.app-main {
 
 .panel.right-panel .panel-body {
   padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+}
+
+/* === AD CONTAINER === */
+.ad-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+  min-height: 250px;
 }
 
 /* === YEAR GRID ADJUSTMENTS === */
@@ -907,6 +924,13 @@ section.panel.years-panel {
           <div class="tab-title"></div>
         </div>
         <div class="panel-body">
+          <div id="ad-right" class="ad-container">
+            <!-- Mind Left Body - Right Sidebar -->
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:300px;height:250px"
+                 data-ad-client="ca-pub-5226913770398471"
+                 data-ad-slot="9360651477"></ins>
+          </div>
         </div>
       </section>
     </div>

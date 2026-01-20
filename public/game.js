@@ -403,10 +403,46 @@ answerEl.style.display = "none";
 const answerPanel = document.querySelector('.answer-panel');
 if (answerPanel) answerPanel.style.display = "none";
 
+// ------- AdSense refresh logic
+function refreshAdUnit() {
+  // Get the ad container
+  const adContainer = document.getElementById('ad-right');
+  if (!adContainer) return;
+
+  // Remove existing ad
+  const existingAd = adContainer.querySelector('.adsbygoogle');
+  if (existingAd) {
+    existingAd.remove();
+  }
+
+  // Create new ad element
+  const newAd = document.createElement('ins');
+  newAd.className = 'adsbygoogle';
+  newAd.style.display = 'inline-block';
+  newAd.style.width = '300px';
+  newAd.style.height = '250px';
+  newAd.setAttribute('data-ad-client', 'ca-pub-5226913770398471');
+  newAd.setAttribute('data-ad-slot', '9360651477');
+
+  // Add new ad to container
+  adContainer.appendChild(newAd);
+
+  // Push to AdSense queue
+  try {
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (e) {
+    console.error('AdSense error:', e);
+  }
+}
+
 // ------- Core: load a random clip (stable)
 function loadRandomClip() {
   const myRound = ++round;
   roundOver = false;                     // round is active again
+
+  // Refresh ad unit at start of new round
+  refreshAdUnit();
+
   setPlayState("loading");
   if (playAgainBtn) playAgainBtn.style.display = "none";
   playBtn.disabled = true;               // disable only while loading
@@ -819,5 +855,12 @@ if (answerPanel) answerPanel.style.display = "block";
         playBtn.dataset.roundOver = "false";
       }
     });
+  }
+
+  // Initialize first ad on page load
+  try {
+    (adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (e) {
+    console.error('Initial AdSense load error:', e);
   }
 });
