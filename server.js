@@ -40,11 +40,35 @@ app.use(helmet({
     useDefaults: true,
     directives: {
       "default-src": ["'self'"],
-      "script-src": ["'self'"],                 // no inline scripts allowed
-      "style-src": ["'self'", "'unsafe-inline'"], // keep inline styles for now
-      "img-src": ["'self'", "data:", "https://archive.org", "https://*.archive.org"],
+      "script-src": [
+        "'self'",
+        "https://pagead2.googlesyndication.com",
+        "https://adservice.google.com",
+        "https://www.googletagservices.com",
+        "https://tpc.googlesyndication.com",
+        "https://ep1.adtrafficquality.google",
+        "https://ep2.adtrafficquality.google",
+        "'unsafe-inline'"                        // AdSense injects inline scripts
+      ],
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "img-src": [
+        "'self'", "data:", "https://archive.org", "https://*.archive.org",
+        "https://pagead2.googlesyndication.com", "https://www.google.com",
+        "https://www.gstatic.com", "https://tpc.googlesyndication.com"
+      ],
       "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
-      "connect-src": ["'self'", "https://archive.org", "https://*.archive.org"],
+      "connect-src": [
+        "'self'", "https://archive.org", "https://*.archive.org",
+        "https://pagead2.googlesyndication.com", "https://adservice.google.com",
+        "https://tpc.googlesyndication.com"
+      ],
+      "frame-src": [
+        "https://googleads.g.doubleclick.net",
+        "https://tpc.googlesyndication.com",
+        "https://www.google.com",
+        "https://ep1.adtrafficquality.google",
+        "https://ep2.adtrafficquality.google"
+      ],
       "frame-ancestors": ["'self'"]
     }
   }

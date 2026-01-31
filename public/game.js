@@ -311,7 +311,7 @@ console.log("jamAudio element:", jamAudio);
     li.style.margin = "6px 0";
     const label = t.title || t.name;
     const len = t.length ? ` <span style="color:#9ca3af;">(${t.length})</span>` : "";
-    li.innerHTML = `<a href="#" data-url="${t.url}" class="gt-play">${label}</a>${len}`;
+    li.innerHTML = `<a href="#" data-url="${t.url}" class="gt-play"><span class="gt-label">${label}</span></a>${len}`;
     list.appendChild(li);
   });
 
@@ -323,6 +323,19 @@ console.log("jamAudio element:", jamAudio);
       e.preventDefault();
       const url = a.getAttribute("data-url");
       if (!url) return;
+      // Reset all track labels to default style
+      Array.from(answerEl.querySelectorAll(".gt-label")).forEach(span => {
+        span.style.fontSize = "";
+        span.style.fontWeight = "";
+        span.style.color = "";
+      });
+      // Highlight the selected track's label
+      const span = a.querySelector(".gt-label");
+      if (span) {
+        span.style.fontSize = "18px";
+        span.style.fontWeight = "600";
+        span.style.color = "#5B8FA3";
+      }
       try { jamAudio.pause(); } catch {}
       jamAudio.src = url;
       jamAudio.load();
@@ -621,6 +634,7 @@ playBtn.disabled = false;
 
   function onWin() {
     roundOver = true;                        // lock the round
+    jamAudio.oncanplay = null;               // prevent stale handler from overriding round-end state
     setButtonsEnabled(false);
 
     const showTitle = cleanShowTitle(current.title, current.date, current.venue);
@@ -632,7 +646,7 @@ if (answerPanel) answerPanel.style.display = "block";
     answerEl.innerHTML = `
       <div style="margin-top:6px;">
         <strong>${showTitle}</strong>
-        ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
+        ${trackName ? `<div style="margin-top:4px; font-size:18px; font-weight:600; color:#5B8FA3;">${trackName}</div>` : ""}
       </div>
     `;
 
@@ -711,6 +725,7 @@ if (answerPanel) answerPanel.style.display = "block";
 
 function onOutOfGuesses(correctYear) {
   roundOver = true;                        // lock the round
+  jamAudio.oncanplay = null;               // prevent stale handler from overriding round-end state
   setButtonsEnabled(false);
 
   const showTitle = cleanShowTitle(current.title, current.date, current.venue);
@@ -722,7 +737,7 @@ if (answerPanel) answerPanel.style.display = "block";
   answerEl.innerHTML = `
     <div style="margin-top:6px;">
       <strong>${showTitle}</strong>
-      ${trackName ? `<div style="margin-top:4px; color:#d1d5db;">${trackName}</div>` : ""}
+      ${trackName ? `<div style="margin-top:4px; font-size:18px; font-weight:600; color:#5B8FA3;">${trackName}</div>` : ""}
     </div>
   `;
 
@@ -734,11 +749,11 @@ if (answerPanel) answerPanel.style.display = "block";
           renderTracksUnderAnswer(show.tracks || []);
           // renderShowBottom(show); // disabled to avoid duplicate list
         } else {
-          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn't load track list.</p>`;
         }
       })
       .catch(() => {
-        answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+        answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn't load track list.</p>`;
       });
   }
 

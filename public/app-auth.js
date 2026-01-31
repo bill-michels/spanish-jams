@@ -101,7 +101,7 @@
       }
 
       const html = [
-        '<ol style="margin:0; padding-left:0;">',
+        '<ol style="margin:0; padding-left:1.8rem;">',
         ...rows.slice(0, 20).map((row) =>
           `<li><span class="lb-name">${(row.display_name || row.username || row.name || 'anon')}</span>: <strong>${row.points || row.score || 0}</strong></li>`
         ),
