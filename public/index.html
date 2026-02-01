@@ -31,6 +31,11 @@
   opacity: 1 !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+  pointer-events: none;
+}
+
+#fixedHeader .header-inner > * {
+  pointer-events: auto;
 }
 
 #fixedHeader .header-inner {
@@ -117,6 +122,19 @@
   margin-bottom: 0px;
 }
 
+#sessionRoundsLabel,
+#sessionPointsLabel,
+#sessionPtsPerRoundLabel,
+#mobileSessionRoundsLabel,
+#mobileSessionPointsLabel,
+#mobileSessionPtsPerRoundLabel {
+  color: #5B8FA3;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0px;
+  display: inline;
+}
+
 #authedUser,
 #authedScoreValue {
   font-weight: 600;
@@ -124,6 +142,28 @@
   margin-top: 0px;
   font-size: 1.0rem;
   color: #111827;
+}
+
+#sessionRoundsValue,
+#sessionPointsValue,
+#sessionPtsPerRoundValue,
+#mobileSessionRoundsValue,
+#mobileSessionPointsValue,
+#mobileSessionPtsPerRoundValue {
+  font-weight: 600;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-size: 1.0rem;
+  color: #111827;
+  display: inline;
+}
+
+.session-stat-row {
+  margin-bottom: 0px;
+}
+
+#sessionStatsPanel {
+  margin-top: 8px;
 }
 
 .game-rules {
@@ -793,12 +833,17 @@ section.panel.years-panel {
       <div id="mobileAuthedPanel" class="auth-logged" style="display:none;">
         <div>Playing as:</div>
         <div id="mobileAuthedUser">—</div>
-        <div>Score:</div>
+        <div>All Time Score:</div>
         <div id="mobileAuthedScore">0</div>
         <button id="mobileLogoutBtn" class="btn">Logout</button>
       </div>
+      <div id="mobileSessionStatsPanel" style="margin-top: 16px;">
+        <div class="session-stat-row"><span id="mobileSessionRoundsLabel">Session Rounds:</span> <span id="mobileSessionRoundsValue">0</span></div>
+        <div class="session-stat-row"><span id="mobileSessionPointsLabel">Session Points:</span> <span id="mobileSessionPointsValue">0</span></div>
+        <div class="session-stat-row"><span id="mobileSessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="mobileSessionPtsPerRoundValue">0</span></div>
+      </div>
     </div>
-    
+
     <!-- Leaderboard clone -->
     <div class="mobile-leaderboard" style="margin-top: 24px;">
       <h3 style="color: var(--mlb-primary); margin-bottom: 16px;">Leaderboard</h3>
@@ -828,11 +873,16 @@ section.panel.years-panel {
             <div id="authedPanel" class="auth-logged">
               <div>Playing as:</div>
               <div id="authedUser">—</div>
-              <div id="authedScoreLabel">Score:</div>
-             <div id="authedScoreValue">0</div>
+              <div id="authedScoreLabel">All Time Score</div>
+              <div id="authedScoreValue">0</div>
               <button id="logoutBtn" class="btn btn-block" type="button">Logout</button>
             </div>
             <p id="scoreHint" class="note">Sign in to save your score on the leaderboard.</p>
+            <div id="sessionStatsPanel">
+              <div class="session-stat-row"><span id="sessionRoundsLabel">Session Rounds:</span> <span id="sessionRoundsValue">0</span></div>
+              <div class="session-stat-row"><span id="sessionPointsLabel">Session Points:</span> <span id="sessionPointsValue">0</span></div>
+              <div class="session-stat-row"><span id="sessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="sessionPtsPerRoundValue">0</span></div>
+            </div>
           </div>
         </section>
 
@@ -958,5 +1008,6 @@ section.panel.years-panel {
   <script src="/game.js"></script>
   <script src="/app-auth.js" defer></script>
   <script src="/mobile-menu.js"></script>
+
 </body>
 </html>

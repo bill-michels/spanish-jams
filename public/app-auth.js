@@ -55,7 +55,7 @@
       body.classList.remove('is-authed');
       if (signInStatusEl) signInStatusEl.textContent = '';
       if (authedUserEl) authedUserEl.textContent = '—';
-      if (authedScoreValueEl) authedScoreValueEl.textContent = 'Score: 0';
+      if (authedScoreValueEl) authedScoreValueEl.textContent = '0';
 
       // Mobile menu: show login form, hide logged-in panel
       if (mobileAuthPanel) mobileAuthPanel.style.display = 'block';
@@ -222,6 +222,14 @@
       await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
     } catch {}
     window.currentScore = 0;
+    window.sessionRounds = 0;
+    window.sessionPoints = 0;
+    // Reset session stat displays
+    ['sessionRoundsValue', 'sessionPointsValue', 'sessionPtsPerRoundValue',
+     'mobileSessionRoundsValue', 'mobileSessionPointsValue', 'mobileSessionPtsPerRoundValue'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '0';
+    });
     setAuthedUI(null);
     setHeaderOffset();
     refreshLeaderboard();

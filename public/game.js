@@ -281,6 +281,28 @@ console.log("jamAudio element:", jamAudio);
   const MAX_GUESSES = 3;
   let roundOver = false;  // true once a round ends (win or out of guesses)
 
+  // Session stats
+  window.sessionRounds = 0;
+  window.sessionPoints = 0;
+
+  function updateSessionStats() {
+    const ptsPerRound = window.sessionRounds > 0
+      ? (window.sessionPoints / window.sessionRounds).toFixed(1)
+      : '0.0';
+    const ids = [
+      ['sessionRoundsValue', window.sessionRounds],
+      ['sessionPointsValue', window.sessionPoints],
+      ['sessionPtsPerRoundValue', ptsPerRound],
+      ['mobileSessionRoundsValue', window.sessionRounds],
+      ['mobileSessionPointsValue', window.sessionPoints],
+      ['mobileSessionPtsPerRoundValue', ptsPerRound],
+    ];
+    ids.forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    });
+  }
+
   // ------- Utilities
   function setButtonsEnabled(enabled) {
     Array.from(yearGrid.querySelectorAll("button")).forEach(b => { b.disabled = !enabled; });
@@ -588,6 +610,15 @@ playBtn.disabled = false;
     loadRandomClip();
   });
 
+  // ------- Easter egg detection
+  function getEasterEgg() {
+    const trackName = (current.file && (current.file.title || current.file.name)) || "";
+    const lower = trackName.toLowerCase();
+    if (lower.includes("mind left body")) return { name: "Mind Left Body", multiplier: 10 };
+    if (lower.includes("dark star")) return { name: "Dark Star", multiplier: 3 };
+    return null;
+  }
+
   // ------- Guess handling (3 guesses with year buttons)
   yearGrid.addEventListener("click", (e) => {
     const btn = e.target.closest("button");
@@ -607,21 +638,24 @@ playBtn.disabled = false;
     btn.disabled = true;
 
     if (guess === correct) {
-      // Correct guess - show feedback with points
-      let points = 0;
-      let feedback = "";
-      if (guessCount === 1) {
-        points = 3;
-        feedback = "3pts";
-      } else if (guessCount === 2) {
-        points = 2;
-        feedback = "2pts";
-      } else if (guessCount === 3) {
-        points = 1;
-        feedback = "1pt";
+      // Correct guess - calculate base points
+      let basePts = 0;
+      if (guessCount === 1) basePts = 3;
+      else if (guessCount === 2) basePts = 2;
+      else if (guessCount === 3) basePts = 1;
+
+      const egg = getEasterEgg();
+      if (egg) {
+        const total = basePts * egg.multiplier;
+        btn.textContent = `${total}pts (${egg.multiplier}X)`;
+        btn.classList.remove("used");
+        btn.classList.add("bonus");
+      } else {
+        btn.textContent = basePts + (basePts === 1 ? "pt" : "pts");
+        btn.classList.remove("used");
+        btn.classList.add("correct");
       }
-      btn.textContent = feedback;
-      onWin();
+      onWin(egg);
     } else if (guessCount < MAX_GUESSES) {
       // Incorrect guess - show "Nope"
       btn.textContent = "Nope";
@@ -632,13 +666,19 @@ playBtn.disabled = false;
     }
   });
 
-  function onWin() {
+  function onWin(easterEgg) {
     roundOver = true;                        // lock the round
     jamAudio.oncanplay = null;               // prevent stale handler from overriding round-end state
     setButtonsEnabled(false);
 
     const showTitle = cleanShowTitle(current.title, current.date, current.venue);
     const trackName = (current.file && (current.file.title || current.file.name)) || "";
+
+    // Build bonus callout HTML
+    let bonusHtml = "";
+    if (easterEgg) {
+      bonusHtml = `<div style="margin-top:6px; font-size:16px; font-weight:700; color:#F3B23E;">${easterEgg.name} bonus! ${easterEgg.multiplier}X points!</div>`;
+    }
 
     answerEl.style.display = "block";
 const answerPanel = document.querySelector('.answer-panel');
@@ -647,6 +687,7 @@ if (answerPanel) answerPanel.style.display = "block";
       <div style="margin-top:6px;">
         <strong>${showTitle}</strong>
         ${trackName ? `<div style="margin-top:4px; font-size:18px; font-weight:600; color:#5B8FA3;">${trackName}</div>` : ""}
+        ${bonusHtml}
       </div>
     `;
 
@@ -657,23 +698,31 @@ if (answerPanel) answerPanel.style.display = "block";
         .then(show => {
           if (show && !show.error) {
             renderTracksUnderAnswer(show.tracks || []);
-            // renderShowBottom(show); // disabled to avoid duplicate list
           } else {
-            answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+            answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn't load track list.</p>`;
           }
         })
         .catch(() => {
-          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn’t load track list.</p>`;
+          answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn't load track list.</p>`;
         });
     }
 
-    // Award points only if won within 3 guesses: 1st → 3, 2nd → 2, 3rd → 1
+    // Award points: base 1st → 3, 2nd → 2, 3rd → 1, then apply easter egg multiplier
     let pts = 0;
     if (guessCount === 1) pts = 3;
     else if (guessCount === 2) pts = 2;
     else if (guessCount === 3) pts = 1;
 
-    console.log("[CLIENT] scoring win", { guessCount, pts });
+    if (easterEgg) {
+      pts = pts * easterEgg.multiplier;
+    }
+
+    console.log("[CLIENT] scoring win", { guessCount, pts, easterEgg });
+
+    // Update session stats
+    window.sessionRounds++;
+    window.sessionPoints += pts;
+    updateSessionStats();
 
     // keep a running total on the client so the auth box can show it
     if (typeof window.currentScore !== "number") {
@@ -756,6 +805,10 @@ if (answerPanel) answerPanel.style.display = "block";
         answerEl.innerHTML += `<p class="note" style="margin-top:6px;">Couldn't load track list.</p>`;
       });
   }
+
+  // Update session stats (0 points)
+  window.sessionRounds++;
+  updateSessionStats();
 
   // No points when out of guesses
   fetch("/api/score", {
