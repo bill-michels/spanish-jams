@@ -309,7 +309,7 @@ console.log("jamAudio element:", jamAudio);
   }
   function clearUsedMarks() {
     Array.from(yearGrid.querySelectorAll("button")).forEach(b => {
-      b.classList.remove("used");
+      b.classList.remove("used", "correct", "bonus");
       // Reset button text back to the year number
       b.textContent = b.dataset.year;
     });
