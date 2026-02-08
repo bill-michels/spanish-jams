@@ -42,6 +42,8 @@ app.use(helmet({
       "default-src": ["'self'"],
       "script-src": [
         "'self'",
+        "https://www.googletagmanager.com",      // Google Analytics
+        "https://www.google-analytics.com",      // Google Analytics
         "https://pagead2.googlesyndication.com",
         "https://adservice.google.com",
         "https://www.googletagservices.com",
@@ -54,13 +56,16 @@ app.use(helmet({
       "img-src": [
         "'self'", "data:", "https://archive.org", "https://*.archive.org",
         "https://pagead2.googlesyndication.com", "https://www.google.com",
-        "https://www.gstatic.com", "https://tpc.googlesyndication.com"
+        "https://www.gstatic.com", "https://tpc.googlesyndication.com",
+        "https://www.google-analytics.com", "https://www.googletagmanager.com"
       ],
       "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
       "connect-src": [
         "'self'", "https://archive.org", "https://*.archive.org",
         "https://pagead2.googlesyndication.com", "https://adservice.google.com",
-        "https://tpc.googlesyndication.com"
+        "https://tpc.googlesyndication.com",
+        "https://www.google-analytics.com", "https://analytics.google.com",
+        "https://region1.google-analytics.com"
       ],
       "frame-src": [
         "https://googleads.g.doubleclick.net",
