@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: '20kb' }));
 app.use(cookieSession({
   name: 'session',
   secret: process.env.SESSION_SECRET,
-  maxAge: 24 * 60 * 60 * 1000, // 1 day
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   sameSite: 'lax',
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production'

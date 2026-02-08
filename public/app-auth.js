@@ -202,6 +202,10 @@
       });
 
       if (r.ok) {
+        // GA4: account_created event
+        if (typeof gtag === 'function') {
+          gtag('event', 'account_created');
+        }
         return onSuccess();
       }
 

@@ -358,6 +358,17 @@ console.log("jamAudio element:", jamAudio);
         span.style.fontWeight = "600";
         span.style.color = "#5B8FA3";
       }
+
+      // GA4: answer_track_played event
+      const songName = span ? span.textContent : '';
+      const showYear = current && current.date ? parseInt(String(current.date).slice(0,4), 10) : null;
+      if (typeof gtag === 'function') {
+        gtag('event', 'answer_track_played', {
+          song_name: songName,
+          show_year: showYear
+        });
+      }
+
       try { jamAudio.pause(); } catch {}
       jamAudio.src = url;
       jamAudio.load();
@@ -471,8 +482,13 @@ function refreshAdUnit() {
 }
 
 // ------- Core: load a random clip (stable)
-function loadRandomClip() {
+function loadRandomClip(trigger = 'play') {
   const myRound = ++round;
+
+  // GA4: game_start event
+  if (typeof gtag === 'function') {
+    gtag('event', 'game_start', { trigger: trigger });
+  }
   roundOver = false;                     // round is active again
 
   // Refresh ad unit at start of new round
@@ -719,6 +735,29 @@ if (answerPanel) answerPanel.style.display = "block";
 
     console.log("[CLIENT] scoring win", { guessCount, pts, easterEgg });
 
+    // GA4: round_completed and round_completed_won events
+    const correctYear = parseInt(String(current.date).slice(0,4), 10);
+    if (typeof gtag === 'function') {
+      gtag('event', 'round_completed', {
+        points: pts,
+        guesses_used: guessCount,
+        correct_year: correctYear
+      });
+      gtag('event', 'round_completed_won', {
+        points: pts,
+        guesses_used: guessCount,
+        correct_year: correctYear
+      });
+      // easter_egg_found event
+      if (easterEgg) {
+        gtag('event', 'easter_egg_found', {
+          egg_name: easterEgg.name,
+          multiplier: easterEgg.multiplier,
+          points_earned: pts
+        });
+      }
+    }
+
     // Update session stats
     window.sessionRounds++;
     window.sessionPoints += pts;
@@ -809,6 +848,18 @@ if (answerPanel) answerPanel.style.display = "block";
   // Update session stats (0 points)
   window.sessionRounds++;
   updateSessionStats();
+
+  // GA4: round_completed and round_completed_lost events
+  if (typeof gtag === 'function') {
+    gtag('event', 'round_completed', {
+      points: 0,
+      guesses_used: MAX_GUESSES,
+      correct_year: correctYear
+    });
+    gtag('event', 'round_completed_lost', {
+      correct_year: correctYear
+    });
+  }
 
   // No points when out of guesses
   fetch("/api/score", {
@@ -916,7 +967,7 @@ if (answerPanel) answerPanel.style.display = "block";
   if (playAgainBtn) {
     playAgainBtn.addEventListener("click", () => {
       roundOver = false;
-      loadRandomClip();
+      loadRandomClip('play_again');
       playAgainBtn.style.display = "none";
       playAgainBtn.dataset.visible = "false";
       if (playBtn) {
