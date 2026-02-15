@@ -191,7 +191,7 @@ main.app-main {
 section.panel.years-panel {
   margin: var(--space-6) 0 !important;
   padding: 12px !important;
-  background: rgba(139, 157, 175, 0.60) !important;
+  background: rgba(139, 157, 175, 0.4) !important;
 }
 
 .years-panel h4 {

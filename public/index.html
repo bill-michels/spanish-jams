@@ -99,7 +99,7 @@
   display: block;
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #5B8FA3 !important;
+  color: #444 !important;
   margin-bottom: 4px !important;
 }
 
@@ -125,7 +125,7 @@
 
 #authedPanel > div:first-child,
 #authedScoreLabel {
-  color: #5B8FA3;
+  color: #444;
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 0px;
@@ -137,7 +137,7 @@
 #mobileSessionRoundsLabel,
 #mobileSessionPointsLabel,
 #mobileSessionPtsPerRoundLabel {
-  color: #5B8FA3;
+  color: #444;
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 0px;
@@ -177,9 +177,9 @@
 
 .game-rules {
   text-align: center;
-  font-style: italic;
-  color: #111827;
+  color: #444;
   font-size: 14px;
+  font-weight: 600;
   margin: 8px 0 8px 0;
 }
 
@@ -221,7 +221,9 @@
 }
 
 .panel.leaderboard-panel .tab-title {
-  color: #5B8FA3;
+  color: #444;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .panel.leaderboard-panel .panel-body {
@@ -296,6 +298,7 @@ main.app-main {
 .panel.instagram-panel {
   background: rgba(139, 157, 175, 0.4);
   backdrop-filter: blur(8px) saturate(1.1);
+  height: 420px;
 }
 
 .panel.instagram-panel .panel-head {
@@ -308,7 +311,7 @@ main.app-main {
 }
 
 .panel.instagram-panel .panel-head .tab-title {
-  color: #5B8FA3;
+  color: #444;
   font-size: 18px;
   font-weight: 600;
 }
@@ -390,6 +393,7 @@ main.app-main {
 .panel.right-panel {
   background: rgba(139, 157, 175, 0.4);
   backdrop-filter: blur(8px) saturate(1.1);
+  height: 420px;
 }
 
 .panel.right-panel .panel-head {
@@ -401,18 +405,82 @@ main.app-main {
   justify-content: center;
 }
 
+.panel.right-panel .panel-head {
+  padding: 4px 8px;
+}
+
 .panel.right-panel .panel-head .tab-title {
-  color: #5B8FA3;
+  color: #444;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.panel.right-panel .panel-body {
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+/* === ABOUT PANEL (middle column) === */
+.panel.about-panel {
+  background: rgba(139, 157, 175, 0.4);
+  backdrop-filter: blur(8px) saturate(1.1);
+  margin-top: 16px;
+}
+
+.panel.about-panel .panel-head {
+  padding: 2px 12px;
+  text-align: center;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel.about-panel .panel-head .tab-title {
+  color: #444;
   font-size: 18px;
   font-weight: 600;
 }
 
-.panel.right-panel .panel-body {
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 250px;
+.panel.about-panel .panel-body {
+  padding: 4px 12px 4px 12px;
+}
+
+.about-panel-text {
+  text-align: center;
+  color: #444;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* === NUGS LINK === */
+.nugs-link {
+  display: block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.nugs-logo {
+  max-width: 200px;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+
+.nugs-link:hover .nugs-logo {
+  transform: scale(1.05);
+}
+
+.ad-separator {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  margin: 12px 0 8px 0;
+  width: 80%;
 }
 
 /* === AD CONTAINER === */
@@ -421,7 +489,6 @@ main.app-main {
   align-items: center;
   justify-content: center;
   min-width: 300px;
-  min-height: 250px;
 }
 
 /* === YEAR GRID ADJUSTMENTS === */
@@ -748,8 +815,8 @@ section.panel.years-panel {
   .game-rules::after {
     content: "Play, guess year — 3pts, 2pts, 1pt";
     font-size: 12px;
-    font-style: italic;
-    color: #111827;
+    font-weight: 600;
+    color: #444;
     display: block;
   }
 
@@ -980,13 +1047,26 @@ section.panel.years-panel {
           <div id="answerEl"></div>
           <ol id="trackList" style="padding-left:20px; margin-top:var(--space-4);"></ol>
         </section>
+
+        <section class="panel about-panel">
+          <div class="panel-head">
+            <div class="tab-title">About the Game</div>
+          </div>
+          <div class="panel-body">
+            <p class="about-panel-text">Listen to a random live Dead song and identify the year. See how your skills measure up against other Deadheads. Game on!</p>
+          </div>
+        </section>
       </div>
 
       <section class="panel right-panel">
         <div class="panel-head">
-          <div class="tab-title"></div>
+          <div class="tab-title">Nugs.net - Stream Shows</div>
         </div>
         <div class="panel-body">
+          <a href="https://www.nugs.net/" target="_blank" rel="noopener noreferrer" class="nugs-link">
+            <img src="/Images/nugs-logo.png" alt="Nugs.net - Stream Shows" class="nugs-logo" />
+          </a>
+          <hr class="ad-separator">
           <div id="ad-right" class="ad-container">
             <!-- Mind Left Body - Right Sidebar -->
             <ins class="adsbygoogle"
