@@ -83,7 +83,7 @@ app.use(compression());
 // ---------- Global rate limiting for all /api routes ----------
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 20,            // not "limit"
+  max: 60,            // 60 requests per minute for active gameplay
   standardHeaders: true,
   legacyHeaders: false
 });
@@ -96,7 +96,10 @@ app.use(express.static(path.join(__dirname, "public")));
 // ---------- PostgreSQL setup ----------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 5,                    // Railway free tier limit
+  idleTimeoutMillis: 30000,  // Close idle connections after 30s
+  connectionTimeoutMillis: 10000  // Fail fast if can't connect in 10s
 });
 
 // Initialize database schema
@@ -154,6 +157,18 @@ app.get("/", (_req, res) => {
 });
 
 // ---------- Helpers ----------
+// Fetch with timeout for external API calls
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function parseLenSeconds(len) {
   if (len == null) return NaN;
   if (typeof len === "number") return len;
@@ -189,7 +204,7 @@ const endY   = Math.max(startY, Math.min(1995, parseInt(req.query.end || "1995",
       `&fl[]=identifier&fl[]=date&fl[]=title&fl[]=venue&fl[]=location` +
       `&rows=1000&sort[]=date+asc&output=json`;
 
-    const sr = await fetch(searchUrl);
+    const sr = await fetchWithTimeout(searchUrl, {}, 10000);
     const sd = await sr.json();
     const docs = (sd.response && sd.response.docs) || [];
     if (!docs.length) throw new Error(`No shows found in ${year}`);
@@ -199,7 +214,7 @@ const endY   = Math.max(startY, Math.min(1995, parseInt(req.query.end || "1995",
 
     // 4) Load authoritative metadata + files
     const metaUrl = `https://archive.org/metadata/${encodeURIComponent(show.identifier)}`;
-    const mr = await fetch(metaUrl);
+    const mr = await fetchWithTimeout(metaUrl, {}, 10000);
     const meta = await mr.json();
 
     const item = (meta && meta.metadata) || {};
@@ -241,7 +256,7 @@ app.get("/api/show/:id", async (req, res) => {
   return res.status(400).json({ error: "Invalid show id" });
 }
     const metaUrl = `https://archive.org/metadata/${encodeURIComponent(id)}`;
-    const mr = await fetch(metaUrl);
+    const mr = await fetchWithTimeout(metaUrl, {}, 10000);
     const meta = await mr.json();
 
     const item = (meta && meta.metadata) || {};
@@ -446,7 +461,7 @@ app.get("/year/:year", async (req, res) => {
       `&fl[]=identifier&fl[]=date&fl[]=title&fl[]=venue&fl[]=location` +
       `&rows=500&sort[]=date+asc&output=json`;
 
-    const r = await fetch(url);
+    const r = await fetchWithTimeout(url, {}, 10000);
     const data = await r.json();
     const docs = (data.response && data.response.docs) || [];
 
@@ -479,11 +494,11 @@ app.get("/search", async (req, res) => {
       `&fl[]=identifier&fl[]=date&fl[]=title&fl[]=venue&fl[]=location` +
       `&rows=200&sort[]=date+asc&output=json`;
 
-    const r = await fetch(url);
+    const r = await fetchWithTimeout(url, {}, 10000);
     const data = await r.json();
     const docs = (data.response && data.response.docs) || [];
 
-    let html = `<h1>Search Results ${qRaw ? `for “${qRaw}”` : ""}</h1><p><a href=\"/\">← Back</a></p><ul>`;
+    let html = `<h1>Search Results ${qRaw ? `for "${qRaw}"` : ""}</h1><p><a href=\"/\">← Back</a></p><ul>`;
     for (const d of docs) {
       const date = (d.date || "").split("T")[0];
       const title = d.title || "";
@@ -511,6 +526,29 @@ app.get("/debug/routes", (_req, res) => {
 
 app.get("/_ping", (_req, res) => {
   res.type("text/plain").send("pong");
+});
+
+// Health check endpoint - verifies DB connection
+app.get("/api/health", async (_req, res) => {
+  try {
+    const start = Date.now();
+    await pool.query('SELECT 1');
+    const dbLatency = Date.now() - start;
+    res.json({
+      status: 'healthy',
+      db: 'connected',
+      dbLatencyMs: dbLatency,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Health check failed:', err);
+    res.status(503).json({
+      status: 'unhealthy',
+      db: 'disconnected',
+      error: err.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // ---------- Start server ----------
