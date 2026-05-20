@@ -277,6 +277,14 @@
   padding: 12px 24px !important;
 }
 
+/* End of round: both buttons side by side, equal width */
+#playBtn[data-round-over="true"],
+#playAgainBtn[data-visible="true"] {
+  min-width: 140px !important;
+  max-width: 180px !important;
+  flex: 1 !important;
+}
+
 #jamAudio {
   display: none;
 }
@@ -656,15 +664,22 @@ section.panel.years-panel {
   white-space: nowrap;
 }
 
-/* When round is over, resize buttons */
-#playBtn[data-round-over="true"] {
-  min-width: 140px !important;
-  max-width: 148px !important;
+/* === SHARE BUTTON (in Auth panel) === */
+#shareBtn {
+  margin-top: 12px;
+  width: 100%;
+  background: #2d6a4f !important;
+  border-color: #2d6a4f !important;
+  color: white;
 }
 
-#playAgainBtn[data-visible="true"] {
-  min-width: 140px !important;
-  max-width: 148px !important;
+#shareBtn:hover {
+  background: #245c43 !important;
+  border-color: #245c43 !important;
+}
+
+#shareBtn.copied {
+  background: #1e4d3a !important;
 }
 
 /* === MOBILE STYLES === */
@@ -786,14 +801,8 @@ section.panel.years-panel {
     max-width: 90% !important;
   }
 
-  /* End of round buttons side-by-side on mobile */
-  #playBtn[data-round-over="true"] {
-    min-width: 0 !important;
-    max-width: none !important;
-    width: calc(50% - 4px) !important;
-    flex: 1 !important;
-  }
-
+  /* End of round: Play Again button side-by-side with Play on mobile */
+  #playBtn[data-round-over="true"],
   #playAgainBtn[data-visible="true"] {
     min-width: 0 !important;
     max-width: none !important;
@@ -921,6 +930,7 @@ section.panel.years-panel {
         <div class="session-stat-row"><span id="mobileSessionPointsLabel">Session Points:</span> <span id="mobileSessionPointsValue">0</span></div>
         <div class="session-stat-row"><span id="mobileSessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="mobileSessionPtsPerRoundValue">0</span></div>
       </div>
+      <button id="mobileShareBtn" class="btn btn-share" style="margin-top: 12px; width: 100%; background: #2d6a4f; border-color: #2d6a4f; color: white;">Copy to Share Result</button>
     </div>
 
     <!-- Leaderboard clone -->
@@ -962,6 +972,7 @@ section.panel.years-panel {
               <div class="session-stat-row"><span id="sessionPointsLabel">Session Points:</span> <span id="sessionPointsValue">0</span></div>
               <div class="session-stat-row"><span id="sessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="sessionPtsPerRoundValue">0</span></div>
             </div>
+            <button id="shareBtn" class="btn btn-share">Copy to Share Result</button>
           </div>
         </section>
 

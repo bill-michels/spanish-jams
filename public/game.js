@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ------- Elements
   const playBtn  = document.getElementById("playBtn");
   const playAgainBtn = document.getElementById("playAgainBtn");
+  const shareBtn = document.getElementById("shareBtn");
+  const mobileShareBtn = document.getElementById("mobileShareBtn");
   const jamAudio = document.getElementById("jamAudio");
   const statusEl = document.getElementById("statusEl");
   const answerEl = document.getElementById("answerEl");
@@ -280,6 +282,8 @@ console.log("jamAudio element:", jamAudio);
   let round = 0;          // increments each time Play is clicked
   const MAX_GUESSES = 3;
   let roundOver = false;  // true once a round ends (win or out of guesses)
+  let lastSongName = null;  // track name from last completed round
+  let lastYear = null;      // year from last completed round
 
   // Session stats
   window.sessionRounds = 0;
@@ -690,6 +694,10 @@ playBtn.disabled = false;
     const showTitle = cleanShowTitle(current.title, current.date, current.venue);
     const trackName = (current.file && (current.file.title || current.file.name)) || "";
 
+    // Store for share feature
+    lastSongName = trackName || "a jam";
+    lastYear = current.date ? String(current.date).slice(0, 4) : "";
+
     // Build bonus callout HTML
     let bonusHtml = "";
     if (easterEgg) {
@@ -818,6 +826,10 @@ function onOutOfGuesses(correctYear) {
 
   const showTitle = cleanShowTitle(current.title, current.date, current.venue);
   const trackName = (current.file && (current.file.title || current.file.name)) || "";
+
+  // Store for share feature
+  lastSongName = trackName || "a jam";
+  lastYear = current.date ? String(current.date).slice(0, 4) : "";
 
   answerEl.style.display = "block";
 const answerPanel = document.querySelector('.answer-panel');
@@ -974,6 +986,66 @@ if (answerPanel) answerPanel.style.display = "block";
         playBtn.dataset.roundOver = "false";
       }
     });
+  }
+
+  // Share button handler (shared logic for desktop and mobile)
+  function handleShare(btn) {
+    // Get all-time score
+    const allTimeScore = window.currentScore || 0;
+
+    // Build share text
+    let shareText = `Grateful Dead Guess the Year Game⚡`;
+    if (lastSongName && lastYear) {
+      shareText += `${lastSongName} - ${lastYear}, `;
+    }
+    shareText += `${allTimeScore} Score⚡mindleftbodygame.com`;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareText).then(() => {
+      // Show feedback on both buttons
+      if (shareBtn) {
+        shareBtn.textContent = "Copied! ✌️";
+        shareBtn.classList.add("copied");
+      }
+      if (mobileShareBtn) {
+        mobileShareBtn.textContent = "Copied! ✌️";
+        mobileShareBtn.style.background = "#1e4d3a";
+      }
+
+      // Reset after 2 seconds
+      setTimeout(() => {
+        if (shareBtn) {
+          shareBtn.textContent = "Copy to Share Result";
+          shareBtn.classList.remove("copied");
+        }
+        if (mobileShareBtn) {
+          mobileShareBtn.textContent = "Copy to Share Result";
+          mobileShareBtn.style.background = "#2d6a4f";
+        }
+      }, 2000);
+
+      // GA4 event
+      if (typeof gtag === 'function') {
+        gtag('event', 'share_result', {
+          all_time_score: allTimeScore,
+          song_name: lastSongName,
+          year: lastYear
+        });
+      }
+    }).catch(() => {
+      // Fallback for older browsers
+      btn.textContent = "Copy failed";
+      setTimeout(() => {
+        btn.textContent = "Copy to Share Result";
+      }, 2000);
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener("click", () => handleShare(shareBtn));
+  }
+  if (mobileShareBtn) {
+    mobileShareBtn.addEventListener("click", () => handleShare(mobileShareBtn));
   }
 
   // Initialize first ad on page load
