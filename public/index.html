@@ -95,19 +95,20 @@
   padding: 2px 8px 8px 8px !important;
 }
 
-.panel.auth-panel label {
-  display: block;
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: #444 !important;
-  margin-bottom: 4px !important;
-}
-
 .panel.auth-panel .input,
 .panel.auth-panel .btn {
   height: 28px !important;
   font-size: 14px !important;
   padding: 4px 8px !important;
+}
+
+.panel.auth-panel .input {
+  margin-bottom: 6px !important;
+}
+
+.panel.auth-panel .input::placeholder {
+  color: #888;
+  font-style: italic;
 }
 
 #signInStatusEl {
@@ -666,7 +667,7 @@ section.panel.years-panel {
 
 /* === SHARE BUTTON (in Auth panel) === */
 #shareBtn {
-  margin-top: 12px;
+  margin-top: 4px;
   width: 100%;
   background: #2d6a4f !important;
   border-color: #2d6a4f !important;
@@ -870,16 +871,14 @@ section.panel.years-panel {
   }
 
   /* Mobile menu content styling */
-  .mobile-auth label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 4px;
-    color: var(--mlb-text-muted);
-  }
-
   .mobile-auth .input {
     width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+  }
+
+  .mobile-auth .input::placeholder {
+    color: #888;
+    font-style: italic;
   }
 
   .mobile-auth .btn {
@@ -904,20 +903,20 @@ section.panel.years-panel {
     
     <!-- Auth panel clone -->
     <div class="mobile-auth">
-      <h3 style="color: var(--mlb-primary); margin-bottom: 16px;">Sign In</h3>
-      <!-- Copy your auth form here -->
       <div id="mobileAuthPanel" class="auth-login">
+        <div style="margin-bottom:12px; padding:10px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:8px; text-align:center;">
+          <div style="font-size:14px; font-weight:700; color:#2d6a4f;">🎸 Track Your Score!</div>
+          <div style="font-size:12px; color:#444; margin-top:2px;">Sign in or create an account</div>
+        </div>
         <form id="mobileAuthForm" class="auth-form">
           <div>
-            <label for="mobileAuthName">Username</label>
-            <input id="mobileAuthName" class="input" type="text" placeholder="" autocomplete="username" maxlength="16">
-            <label for="mobileAuthPass">Password</label>
-            <input id="mobileAuthPass" class="input" type="password" placeholder="" autocomplete="current-password">
+            <input id="mobileAuthName" class="input" type="text" placeholder="Username" autocomplete="username" maxlength="16">
+            <input id="mobileAuthPass" class="input" type="password" placeholder="Password" autocomplete="current-password">
           </div>
           <button class="btn btn-primary" type="submit">Continue</button>
         </form>
       </div>
-      
+
       <div id="mobileAuthedPanel" class="auth-logged" style="display:none;">
         <div>Playing as:</div>
         <div id="mobileAuthedUser">—</div>
@@ -928,7 +927,6 @@ section.panel.years-panel {
       <div id="mobileSessionStatsPanel" style="margin-top: 16px;">
         <div class="session-stat-row"><span id="mobileSessionRoundsLabel">Session Rounds:</span> <span id="mobileSessionRoundsValue">0</span></div>
         <div class="session-stat-row"><span id="mobileSessionPointsLabel">Session Points:</span> <span id="mobileSessionPointsValue">0</span></div>
-        <div class="session-stat-row"><span id="mobileSessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="mobileSessionPtsPerRoundValue">0</span></div>
       </div>
       <button id="mobileShareBtn" class="btn btn-share" style="margin-top: 12px; width: 100%; background: #2d6a4f; border-color: #2d6a4f; color: white;">Copy to Share Result</button>
     </div>
@@ -949,12 +947,14 @@ section.panel.years-panel {
           <div class="panel-body">
             <div id="signInStatusEl" class="note"></div>
             <div id="authLoginPanel" class="auth-login">
+              <div id="authCTA" style="margin-bottom:8px; padding:10px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:8px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#2d6a4f;">🎸 Track Your Score!</div>
+                <div style="font-size:12px; color:#444; margin-top:2px;">Sign in or create an account</div>
+              </div>
               <form id="authForm" class="auth-form">
                 <div id="authInputs">
-                  <label for="authName">Username</label>
-                  <input id="authName" class="input" type="text" placeholder="" autocomplete="username" maxlength="16">
-                  <label for="authPass">Password</label>
-                  <input id="authPass" class="input" type="password" placeholder="" autocomplete="current-password">
+                  <input id="authName" class="input" type="text" placeholder="Username" autocomplete="username" maxlength="16">
+                  <input id="authPass" class="input" type="password" placeholder="Password" autocomplete="current-password">
                 </div>
                 <button id="authContinueBtn" class="btn btn-primary btn-block" type="submit">Continue</button>
               </form>
@@ -970,7 +970,6 @@ section.panel.years-panel {
             <div id="sessionStatsPanel">
               <div class="session-stat-row"><span id="sessionRoundsLabel">Session Rounds:</span> <span id="sessionRoundsValue">0</span></div>
               <div class="session-stat-row"><span id="sessionPointsLabel">Session Points:</span> <span id="sessionPointsValue">0</span></div>
-              <div class="session-stat-row"><span id="sessionPtsPerRoundLabel">Session Pts/Round:</span> <span id="sessionPtsPerRoundValue">0</span></div>
             </div>
             <button id="shareBtn" class="btn btn-share">Copy to Share Result</button>
           </div>

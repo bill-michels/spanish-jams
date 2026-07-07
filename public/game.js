@@ -290,16 +290,11 @@ console.log("jamAudio element:", jamAudio);
   window.sessionPoints = 0;
 
   function updateSessionStats() {
-    const ptsPerRound = window.sessionRounds > 0
-      ? (window.sessionPoints / window.sessionRounds).toFixed(1)
-      : '0.0';
     const ids = [
       ['sessionRoundsValue', window.sessionRounds],
       ['sessionPointsValue', window.sessionPoints],
-      ['sessionPtsPerRoundValue', ptsPerRound],
       ['mobileSessionRoundsValue', window.sessionRounds],
       ['mobileSessionPointsValue', window.sessionPoints],
-      ['mobileSessionPtsPerRoundValue', ptsPerRound],
     ];
     ids.forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -704,10 +699,19 @@ playBtn.disabled = false;
       bonusHtml = `<div style="margin-top:6px; font-size:16px; font-weight:700; color:#F3B23E;">${easterEgg.name} bonus! ${easterEgg.multiplier}X points!</div>`;
     }
 
+    // Sign-in prompt for anonymous users (prominent card style)
+    const signInPrompt = !window.currentUser
+      ? `<div style="margin:16px 0; padding:16px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:12px; text-align:center;">
+           <div style="font-size:16px; font-weight:700; color:#2d6a4f; margin-bottom:4px;">🎸 Track Your Score!</div>
+           <div style="font-size:14px; color:#444;">Sign in or create an account — no email needed!</div>
+         </div>`
+      : "";
+
     answerEl.style.display = "block";
 const answerPanel = document.querySelector('.answer-panel');
 if (answerPanel) answerPanel.style.display = "block";
     answerEl.innerHTML = `
+      ${signInPrompt}
       <div style="margin-top:6px;">
         <strong>${showTitle}</strong>
         ${trackName ? `<div style="margin-top:4px; font-size:18px; font-weight:600; color:#5B8FA3;">${trackName}</div>` : ""}
@@ -831,10 +835,19 @@ function onOutOfGuesses(correctYear) {
   lastSongName = trackName || "a jam";
   lastYear = current.date ? String(current.date).slice(0, 4) : "";
 
+  // Sign-in prompt for anonymous users (prominent card style)
+  const signInPrompt = !window.currentUser
+    ? `<div style="margin:16px 0; padding:16px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:12px; text-align:center;">
+         <div style="font-size:16px; font-weight:700; color:#2d6a4f; margin-bottom:4px;">🎸 Track Your Score!</div>
+         <div style="font-size:14px; color:#444;">Sign in or create an account — no email needed!</div>
+       </div>`
+    : "";
+
   answerEl.style.display = "block";
 const answerPanel = document.querySelector('.answer-panel');
 if (answerPanel) answerPanel.style.display = "block";
   answerEl.innerHTML = `
+    ${signInPrompt}
     <div style="margin-top:6px;">
       <strong>${showTitle}</strong>
       ${trackName ? `<div style="margin-top:4px; font-size:18px; font-weight:600; color:#5B8FA3;">${trackName}</div>` : ""}
