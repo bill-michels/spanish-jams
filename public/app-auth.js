@@ -54,7 +54,6 @@
     if (!user) {
       body.classList.remove('is-authed');
       window.currentUser = null;
-      console.log('[setAuthedUI] Clearing window.currentUser');
       if (signInStatusEl) signInStatusEl.textContent = '';
       if (authedUserEl) authedUserEl.textContent = '—';
       if (authedScoreValueEl) authedScoreValueEl.textContent = '0';
@@ -73,7 +72,6 @@
 
     body.classList.add('is-authed');
     window.currentUser = user;
-    console.log('[setAuthedUI] Setting window.currentUser:', user);
     if (signInStatusEl) signInStatusEl.textContent = '';
 
     const shownName = user.display_name || user.username || user.name || 'you';

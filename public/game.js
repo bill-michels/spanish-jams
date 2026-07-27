@@ -700,7 +700,6 @@ playBtn.disabled = false;
     }
 
     // Sign-in prompt for anonymous users (prominent card style)
-    console.log('[onWin] window.currentUser:', window.currentUser);
     const signInPrompt = !window.currentUser
       ? `<div style="margin:16px 0; padding:16px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:12px; text-align:center;">
            <div style="font-size:16px; font-weight:700; color:#2d6a4f; margin-bottom:4px;">🎸 Track Your Score!</div>
@@ -837,7 +836,6 @@ function onOutOfGuesses(correctYear) {
   lastYear = current.date ? String(current.date).slice(0, 4) : "";
 
   // Sign-in prompt for anonymous users (prominent card style)
-  console.log('[onOutOfGuesses] window.currentUser:', window.currentUser);
   const signInPrompt = !window.currentUser
     ? `<div style="margin:16px 0; padding:16px; background:linear-gradient(135deg, rgba(45,106,79,0.15) 0%, rgba(45,106,79,0.08) 100%); border:2px solid #2d6a4f; border-radius:12px; text-align:center;">
          <div style="font-size:16px; font-weight:700; color:#2d6a4f; margin-bottom:4px;">🎸 Track Your Score!</div>
