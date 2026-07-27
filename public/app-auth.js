@@ -57,6 +57,10 @@
       if (authedUserEl) authedUserEl.textContent = '—';
       if (authedScoreValueEl) authedScoreValueEl.textContent = '0';
 
+      // Desktop: show login panel, hide logged-in panel
+      if (authLoginPanel) authLoginPanel.style.display = 'block';
+      if (authedPanel) authedPanel.style.display = 'none';
+
       // Mobile menu: show login form, hide logged-in panel
       if (mobileAuthPanel) mobileAuthPanel.style.display = 'block';
       if (mobileAuthedPanel) mobileAuthedPanel.style.display = 'none';
@@ -71,6 +75,10 @@
     const shownName = user.display_name || user.username || user.name || 'you';
     if (authedUserEl) authedUserEl.textContent = shownName;
     if (authedScoreValueEl) authedScoreValueEl.textContent = window.currentScore || 0;
+
+    // Desktop: hide login panel, show logged-in panel
+    if (authLoginPanel) authLoginPanel.style.display = 'none';
+    if (authedPanel) authedPanel.style.display = 'block';
 
     // Mobile menu: sync user info
     if (mobileAuthedUser) mobileAuthedUser.textContent = shownName;
