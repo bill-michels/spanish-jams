@@ -57,13 +57,17 @@ console.log("jamAudio element:", jamAudio);
     {
       // Rotation 2: Etsy Store + Searchlight GD YouTube
       left: {
-        title: 'Shop Dead Merch:',
+        title: '',
         body: `
-          <div style="text-align:center; padding:20px;">
+          <div style="padding:20px;">
             <a href="https://www.etsy.com/shop/MindLeftBodyStore/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
-              <div style="padding:24px; background:rgba(255,255,255,0.5); border-radius:12px; transition:all 0.3s ease;">
-                <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:600; color:#444;">Visit Our Etsy Store</h3>
+              <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.5); border-radius:12px; transition:all 0.3s ease;">
+                <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:600; color:#444;">Mind Left Body Store</h3>
                 <p style="margin:0 0 12px 0; font-size:14px; color:#444;">Grateful Dead inspired goods</p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:16px 0;">
+                  <img src="/Images/etsy-product-1.jpg" alt="Product 1" style="width:100%; height:120px; object-fit:cover; border-radius:8px;" onerror="this.style.display='none'">
+                  <img src="/Images/etsy-product-2.jpg" alt="Product 2" style="width:100%; height:120px; object-fit:cover; border-radius:8px;" onerror="this.style.display='none'">
+                </div>
                 <span style="display:inline-block; padding:8px 16px; background:#F56400; color:white; border-radius:20px; font-size:14px; font-weight:600;">Shop Now →</span>
               </div>
             </a>
@@ -73,18 +77,18 @@ console.log("jamAudio element:", jamAudio);
       right: {
         title: 'This Day in Dead History',
         body: `
-          <div style="padding:12px 0;">
-            <iframe
-              width="100%"
-              height="315"
-              src="https://www.youtube.com/embed?listType=user_uploads&list=SearchlightGD"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-              style="border-radius:8px;">
-            </iframe>
-            <a href="https://www.youtube.com/@SearchlightGD" target="_blank" rel="noopener noreferrer" style="display:block; margin-top:12px; text-align:center; color:#2d6a4f; font-weight:600; text-decoration:none;">
-              Subscribe to Searchlight GD →
+          <div style="padding:20px;">
+            <a href="https://www.youtube.com/@SearchlightGD" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+              <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.5); border-radius:12px; transition:all 0.3s ease;">
+                <div style="width:80px; height:80px; margin:0 auto 12px; background:#FF0000; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                  <svg width="50" height="36" viewBox="0 0 68 48" fill="white">
+                    <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z M27,34V14l18,10L27,34z"/>
+                  </svg>
+                </div>
+                <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:600; color:#444;">Searchlight GD</h3>
+                <p style="margin:0 0 12px 0; font-size:14px; color:#444;">Daily Grateful Dead history</p>
+                <span style="display:inline-block; padding:8px 16px; background:#FF0000; color:white; border-radius:20px; font-size:14px; font-weight:600;">Watch on YouTube →</span>
+              </div>
             </a>
           </div>
         `
