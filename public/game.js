@@ -64,8 +64,8 @@ console.log("jamAudio element:", jamAudio);
               <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.5); border-radius:12px; transition:all 0.3s ease;">
                 <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:600; color:#444;">Mind Left Body Store</h3>
                 <p style="margin:0 0 12px 0; font-size:14px; color:#444;">Grateful Dead inspired goods</p>
-                <a href="https://www.etsy.com/listing/4540172099/" target="_blank" style="display:block; margin:16px 0;">
-                  <img src="/Images/etsy-product.jpg" alt="Dead Tape Cover Scatter Poster" style="width:100%; max-height:200px; object-fit:contain; border-radius:8px; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.style.display='none'">
+                <a href="https://www.etsy.com/listing/4543534647/" target="_blank" style="display:block; margin:16px 0;">
+                  <img src="https://i.etsystatic.com/66949228/r/il/3708c0/8310447380/il_1588xN.8310447380_n4ky.jpg" alt="V2 Grateful Dead Tape Cover Scatter Poster" style="width:100%; max-height:200px; object-fit:contain; border-radius:8px; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </a>
                 <span style="display:inline-block; padding:8px 16px; background:#F56400; color:white; border-radius:20px; font-size:14px; font-weight:600;">Shop Now →</span>
               </div>
