@@ -68,7 +68,8 @@ app.use(helmet({
         "'self'", "data:", "https://archive.org", "https://*.archive.org",
         "https://pagead2.googlesyndication.com", "https://www.google.com",
         "https://www.gstatic.com", "https://tpc.googlesyndication.com",
-        "https://www.google-analytics.com", "https://www.googletagmanager.com"
+        "https://www.google-analytics.com", "https://www.googletagmanager.com",
+        "https://i.etsystatic.com"  // Etsy product images
       ],
       "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
       "connect-src": [
@@ -83,7 +84,8 @@ app.use(helmet({
         "https://tpc.googlesyndication.com",
         "https://www.google.com",
         "https://ep1.adtrafficquality.google",
-        "https://ep2.adtrafficquality.google"
+        "https://ep2.adtrafficquality.google",
+        "https://www.youtube.com"  // YouTube video embeds
       ],
       "frame-ancestors": ["'self'"]
     }
