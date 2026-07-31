@@ -20,6 +20,92 @@ console.log("jamAudio element:", jamAudio);
     return; // safe to return here because we are inside DOMContentLoaded handler
   }
 
+  // ------- Sponsor Rotation System
+  let sponsorRotationIndex = 0;
+  const leftPanelTitle = document.getElementById('leftPanelTitle');
+  const leftPanelBody = document.getElementById('leftPanelBody');
+  const rightPanelTitle = document.getElementById('rightPanelTitle');
+  const rightPanelBody = document.getElementById('rightPanelBody');
+
+  const sponsorContent = [
+    {
+      // Rotation 1: Stretch Pizza + Nugs
+      left: {
+        title: 'Check out our Sponsor:',
+        body: `
+          <a href="https://www.instagram.com/stretchpizzanyc/" target="_blank" rel="noopener noreferrer" class="instagram-link">
+            <div class="instagram-card">
+              <img src="/Images/stretch-logo.png" alt="Stretch Pizza NYC" class="stretch-logo" />
+              <div class="instagram-info">
+                <h3>Stretch Pizza NYC</h3>
+                <p>@stretchpizzanyc</p>
+                <span class="instagram-cta">Follow on Instagram →</span>
+              </div>
+            </div>
+          </a>
+        `
+      },
+      right: {
+        title: 'Nugs.net - Stream Shows',
+        body: `
+          <a href="https://www.nugs.net/" target="_blank" rel="noopener noreferrer" class="nugs-link">
+            <img src="/Images/nugs-logo.png" alt="Nugs.net - Stream Shows" class="nugs-logo" />
+          </a>
+        `
+      }
+    },
+    {
+      // Rotation 2: Etsy Store + Searchlight GD YouTube
+      left: {
+        title: 'Shop Dead Merch:',
+        body: `
+          <div style="text-align:center; padding:20px;">
+            <a href="https://www.etsy.com/shop/MindLeftBodyStore/" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+              <div style="padding:24px; background:rgba(255,255,255,0.5); border-radius:12px; transition:all 0.3s ease;">
+                <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:600; color:#444;">Visit Our Etsy Store</h3>
+                <p style="margin:0 0 12px 0; font-size:14px; color:#444;">Grateful Dead inspired goods</p>
+                <span style="display:inline-block; padding:8px 16px; background:#F56400; color:white; border-radius:20px; font-size:14px; font-weight:600;">Shop Now →</span>
+              </div>
+            </a>
+          </div>
+        `
+      },
+      right: {
+        title: 'This Day in Dead History',
+        body: `
+          <div style="padding:12px 0;">
+            <iframe
+              width="100%"
+              height="315"
+              src="https://www.youtube.com/embed?listType=user_uploads&list=SearchlightGD"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              style="border-radius:8px;">
+            </iframe>
+            <a href="https://www.youtube.com/@SearchlightGD" target="_blank" rel="noopener noreferrer" style="display:block; margin-top:12px; text-align:center; color:#2d6a4f; font-weight:600; text-decoration:none;">
+              Subscribe to Searchlight GD →
+            </a>
+          </div>
+        `
+      }
+    }
+  ];
+
+  function rotateSponsorContent() {
+    if (!leftPanelTitle || !leftPanelBody || !rightPanelTitle || !rightPanelBody) return;
+
+    const content = sponsorContent[sponsorRotationIndex];
+
+    leftPanelTitle.textContent = content.left.title;
+    leftPanelBody.innerHTML = content.left.body;
+    rightPanelTitle.textContent = content.right.title;
+    rightPanelBody.innerHTML = content.right.body;
+
+    // Move to next rotation
+    sponsorRotationIndex = (sponsorRotationIndex + 1) % sponsorContent.length;
+  }
+
   const labelDefault = playBtn.querySelector(".label-default");
   const labelLoading = playBtn.querySelector(".label-loading");
   const labelPlaying = playBtn.querySelector(".label-playing");
@@ -821,6 +907,9 @@ if (answerPanel) answerPanel.style.display = "block";
     } else {
       setPlayState("round-end-paused");
     }
+
+    // Rotate sponsor content for next round
+    rotateSponsorContent();
   }
 
 function onOutOfGuesses(correctYear) {
@@ -917,6 +1006,9 @@ if (answerPanel) answerPanel.style.display = "block";
   } else {
     setPlayState("round-end-paused");
   }
+
+  // Rotate sponsor content for next round
+  rotateSponsorContent();
 }
 
   // ------- Right panel rendering helpers
