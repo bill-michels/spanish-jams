@@ -69,7 +69,8 @@ app.use(helmet({
         "https://pagead2.googlesyndication.com", "https://www.google.com",
         "https://www.gstatic.com", "https://tpc.googlesyndication.com",
         "https://www.google-analytics.com", "https://www.googletagmanager.com",
-        "https://i.etsystatic.com"  // Etsy product images
+        "https://i.etsystatic.com",  // Etsy product images
+        "https://img.youtube.com", "https://i.ytimg.com"  // YouTube thumbnails
       ],
       "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
       "connect-src": [

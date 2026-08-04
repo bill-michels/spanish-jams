@@ -21,7 +21,7 @@ console.log("jamAudio element:", jamAudio);
   }
 
   // ------- Sponsor Rotation System
-  let sponsorRotationIndex = 0;
+  let sponsorRotationIndex = 1;  // Start with Etsy/YouTube (index 1)
   const leftPanelTitle = document.getElementById('leftPanelTitle');
   const leftPanelBody = document.getElementById('leftPanelBody');
   const rightPanelTitle = document.getElementById('rightPanelTitle');
@@ -57,31 +57,35 @@ console.log("jamAudio element:", jamAudio);
     {
       // Rotation 2: Etsy Store + Searchlight GD YouTube
       left: {
-        title: '',
+        title: 'Tape Cover Poster Art',
         body: `
-          <div style="padding:20px; display:flex; align-items:center; justify-content:center;">
+          <div style="padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <a href="https://www.etsy.com/listing/4543534647/" target="_blank" rel="noopener noreferrer">
-              <img src="https://i.etsystatic.com/66949228/r/il/3708c0/8310447380/il_1588xN.8310447380_n4ky.jpg" alt="Grateful Dead Tape Cover Poster" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <img src="https://i.etsystatic.com/66949228/r/il/bf7790/8340127638/il_1588xN.8340127638_igwv.jpg" alt="Grateful Dead Tape Cover Poster" style="max-width:100%; max-height:300px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             </a>
+            <div style="margin-top:12px; text-align:center; font-size:13px; color:#666;">
+              <a href="https://www.etsy.com/shop/MindLeftBodyStore" target="_blank" rel="noopener noreferrer" style="color:#2d6a4f; font-weight:600; text-decoration:none;">Shop on Etsy →</a>
+            </div>
           </div>
         `
       },
       right: {
-        title: 'This Day in Dead History',
+        title: 'Check out Searchlight Shows',
         body: `
-          <div style="padding:12px;">
-            <iframe
-              width="100%"
-              height="250"
-              src="https://www.youtube.com/embed/y_lMfo6oO0A"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-              style="border-radius:8px;">
-            </iframe>
-            <a href="https://www.youtube.com/@SearchlightGD" target="_blank" rel="noopener noreferrer" style="display:block; margin-top:12px; text-align:center; color:#2d6a4f; font-weight:600; text-decoration:none; font-size:14px;">
-              Subscribe to Searchlight GD →
+          <div style="padding:12px 20px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <a href="https://www.youtube.com/watch?v=y_lMfo6oO0A" target="_blank" rel="noopener noreferrer">
+              <img src="https://img.youtube.com/vi/y_lMfo6oO0A/sddefault.jpg" alt="Searchlight GD Latest Episode" style="max-width:100%; max-height:200px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             </a>
+            <div style="margin-top:12px; text-align:center; font-size:13px;">
+              <div style="margin-bottom:8px;">
+                <a href="https://www.youtube.com/watch?v=y_lMfo6oO0A" target="_blank" rel="noopener noreferrer" style="color:#2d6a4f; font-weight:600; text-decoration:none; font-size:14px;">Watch Latest Episode →</a>
+              </div>
+              <div style="display:flex; gap:12px; justify-content:center; font-size:12px;">
+                <a href="https://www.patreon.com/c/SearchlightGD" target="_blank" rel="noopener noreferrer" style="color:#666; text-decoration:none;">Patreon</a>
+                <span style="color:#ddd;">|</span>
+                <a href="https://www.instagram.com/searchlightgd" target="_blank" rel="noopener noreferrer" style="color:#666; text-decoration:none;">Instagram</a>
+              </div>
+            </div>
           </div>
         `
       }
@@ -904,8 +908,8 @@ if (answerPanel) answerPanel.style.display = "block";
       setPlayState("round-end-paused");
     }
 
-    // Rotate sponsor content for next round
-    rotateSponsorContent();
+    // Rotate sponsor content for next round (disabled for now)
+    // rotateSponsorContent();
   }
 
 function onOutOfGuesses(correctYear) {
@@ -1003,8 +1007,8 @@ if (answerPanel) answerPanel.style.display = "block";
     setPlayState("round-end-paused");
   }
 
-  // Rotate sponsor content for next round
-  rotateSponsorContent();
+  // Rotate sponsor content for next round (disabled for now)
+  // rotateSponsorContent();
 }
 
   // ------- Right panel rendering helpers
@@ -1148,6 +1152,9 @@ if (answerPanel) answerPanel.style.display = "block";
   if (mobileShareBtn) {
     mobileShareBtn.addEventListener("click", () => handleShare(mobileShareBtn));
   }
+
+  // Initialize sponsor panels to show Etsy/YouTube
+  rotateSponsorContent();
 
   // Initialize first ad on page load
   try {
