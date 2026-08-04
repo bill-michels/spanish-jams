@@ -73,12 +73,12 @@ console.log("jamAudio element:", jamAudio);
         title: 'Check out Searchlight Shows',
         body: `
           <div style="padding:12px 20px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <a href="https://www.youtube.com/watch?v=y_lMfo6oO0A" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.youtube.com/@SearchlightGD/videos" target="_blank" rel="noopener noreferrer">
               <img src="https://img.youtube.com/vi/y_lMfo6oO0A/sddefault.jpg" alt="Searchlight GD Latest Episode" style="max-width:100%; max-height:200px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
             </a>
             <div style="margin-top:12px; text-align:center; font-size:13px;">
               <div style="margin-bottom:8px;">
-                <a href="https://www.youtube.com/watch?v=y_lMfo6oO0A" target="_blank" rel="noopener noreferrer" style="color:#2d6a4f; font-weight:600; text-decoration:none; font-size:14px;">Watch Latest Episode →</a>
+                <a href="https://www.youtube.com/@SearchlightGD/videos" target="_blank" rel="noopener noreferrer" style="color:#2d6a4f; font-weight:600; text-decoration:none; font-size:14px;">Watch Latest Episode →</a>
               </div>
               <div style="display:flex; gap:12px; justify-content:center; font-size:12px;">
                 <a href="https://www.patreon.com/c/SearchlightGD" target="_blank" rel="noopener noreferrer" style="color:#666; text-decoration:none;">Patreon</a>
