@@ -593,7 +593,7 @@ function loadRandomClip(trigger = 'play') {
     bottomBody.innerHTML = "";
   }
 
-  statusEl.textContent = "Picking a random show and track…";
+  statusEl.textContent = ""; // Clear status (using button label instead)
   answerEl.style.display = "none";
   answerEl.textContent = "";
   guessCount = 0;
@@ -602,32 +602,37 @@ function loadRandomClip(trigger = 'play') {
 const answerPanel = document.querySelector('.answer-panel');
 if (answerPanel) answerPanel.style.display = "none";
 
-    // Hard reset audio so old events/buffers can't leak
+    // Hard reset audio so old events/buffers can’t leak
     try { jamAudio.pause(); } catch (_) {}
     jamAudio.removeAttribute("src");
     jamAudio.load();
     jamAudio.oncanplay = null;
+    jamAudio.onerror = null;
 
-    fetch("/api/random-clip")
-  .then(async r => {
-    console.log('[load] /api/random-clip status', r.status);
-    const data = await r.json().catch(err => {
-      console.error('[load] JSON parse error', err);
-      return { error: 'bad_json' };
-    });
-    return data;
-  })
+    // API fetch with timeout (20 seconds)
+    const controller = new AbortController();
+    const fetchTimeoutId = setTimeout(() => controller.abort(), 20000);
+
+    fetch("/api/random-clip", { signal: controller.signal })
+      .then(async r => {
+        console.log("[load] /api/random-clip status", r.status);
+        const data = await r.json().catch(err => {
+          console.error("[load] JSON parse error", err);
+          return { error: "bad_json" };
+        });
+        return data;
+      })
       .then(data => {
         if (myRound !== round) return;                  // stale response, ignore
         if (data.error) throw new Error(data.error);
 
         current = data;
-  console.log('[load] api data', current);
-        
+        console.log("[load] api data", current);
+
         // Safety: make sure we actually have a URL
         if (!current || !current.url) {
           console.error("No playable URL in /api/random-clip response:", current);
-          statusEl.textContent = "Couldn’t load a clip. Try again.";
+          statusEl.textContent = "Couldn’t load a clip. Press Play to retry.";
           setButtonsEnabled(true);
           return;
         }
@@ -639,8 +644,39 @@ if (answerPanel) answerPanel.style.display = "none";
         jamAudio.currentTime = 0;
         jamAudio.load();
 
+        // Audio loading timeout (30 seconds)
+        let audioTimeoutId = setTimeout(() => {
+          if (myRound !== round) return;
+          console.error("[audio] load timeout");
+          jamAudio.oncanplay = null;
+          jamAudio.onerror = null;
+          answerEl.style.display = "block";
+          const panel = document.querySelector(".answer-panel");
+          if (panel) panel.style.display = "block";
+          answerEl.innerHTML = "<div style=\"padding:12px; text-align:center; color:#1e3a5f; font-size:18px; font-weight:600;\">Could not load audio. Press Play to retry.</div>";
+          setPlayState("idle");
+          setButtonsEnabled(true);
+          try { jamAudio.pause(); } catch (_) {}
+          jamAudio.removeAttribute("src");
+        }, 30000);
+
+        jamAudio.onerror = (e) => {
+          if (myRound !== round) return;
+          clearTimeout(audioTimeoutId);
+          console.error("[audio] load error", e);
+          jamAudio.oncanplay = null;
+          jamAudio.onerror = null;
+          answerEl.style.display = "block";
+          const panel = document.querySelector(".answer-panel");
+          if (panel) panel.style.display = "block";
+          answerEl.innerHTML = "<div style=\"padding:12px; text-align:center; color:#1e3a5f; font-size:18px; font-weight:600;\">Could not load audio. Press Play to retry.</div>";
+          setPlayState("idle");
+          setButtonsEnabled(true);
+        };
+
         jamAudio.oncanplay = () => {
           if (myRound !== round) return;                // stale event, ignore
+          clearTimeout(audioTimeoutId);
 
           // Soft-sync: derive identifier from audio URL and update `current`
           try {
@@ -664,8 +700,8 @@ if (answerPanel) answerPanel.style.display = "none";
 
           setPlayState("playing");
           jamAudio.play().catch(err => {
-  console.error('[audio] play() failed', err);
-});
+            console.error("[audio] play() failed", err);
+          });
           statusEl.textContent = "";
           jamAudio.style.display = "block";
           setButtonsEnabled(true);
@@ -673,11 +709,19 @@ if (answerPanel) answerPanel.style.display = "none";
       })
       .catch(err => {
         if (myRound !== round) return;
-        console.error("random-clip error:", err);
-        statusEl.textContent = "Couldn’t load a clip. Try again.";
+        clearTimeout(fetchTimeoutId);
+
+        // Show error in answer panel
+        answerEl.style.display = "block";
+        const answerPanel = document.querySelector(".answer-panel");
+        if (answerPanel) answerPanel.style.display = "block";
+        answerEl.innerHTML = "<div style=\"padding:12px; text-align:center; color:#1e3a5f; font-size:18px; font-weight:600;\">Could not load a clip. Press Play to retry.</div>";
+
+        setPlayState("idle");
         setButtonsEnabled(true);
       })
       .finally(() => {
+        clearTimeout(fetchTimeoutId);
         if (myRound === round) playBtn.disabled = false; // ALWAYS re-enable
       });
   }
