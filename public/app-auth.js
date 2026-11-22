@@ -115,7 +115,8 @@
         ...rows.slice(0, 20).map((row) =>
           `<li><span class="lb-name">${(row.display_name || row.username || row.name || 'anon')}</span>: <strong>${row.points || row.score || 0}</strong></li>`
         ),
-        '</ol>'
+        '</ol>',
+        '<div style="margin-top:12px; text-align:center;"><a href="/leaderboard.html" style="color:#e36f4c; font-weight:600; text-decoration:none; font-size:14px;">View Full Leaderboard →</a></div>'
       ].join('');
 
       if (leaderboardBody) {
@@ -133,6 +134,13 @@
 
   // Expose so game.js can call it
   window.refreshLeaderboard = refreshLeaderboard;
+
+  document.querySelectorAll('.panel.leaderboard-panel, .mobile-leaderboard').forEach((panel) => {
+    panel.style.cursor = 'pointer';
+    panel.addEventListener('click', () => {
+      window.location.href = '/leaderboard.html';
+    });
+  });
 
   async function syncScoreFromLeaderboardFor(user) {
     if (!user) return;

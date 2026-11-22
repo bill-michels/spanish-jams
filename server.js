@@ -55,19 +55,11 @@ app.use(helmet({
         "'self'",
         "https://www.googletagmanager.com",      // Google Analytics
         "https://www.google-analytics.com",      // Google Analytics
-        "https://pagead2.googlesyndication.com",
-        "https://adservice.google.com",
-        "https://www.googletagservices.com",
-        "https://tpc.googlesyndication.com",
-        "https://ep1.adtrafficquality.google",
-        "https://ep2.adtrafficquality.google",
-        "'unsafe-inline'"                        // AdSense injects inline scripts
+        "'unsafe-inline'"                        // inline GA snippet and page scripts
       ],
       "style-src": ["'self'", "'unsafe-inline'"],
       "img-src": [
         "'self'", "data:", "https://archive.org", "https://*.archive.org",
-        "https://pagead2.googlesyndication.com", "https://www.google.com",
-        "https://www.gstatic.com", "https://tpc.googlesyndication.com",
         "https://www.google-analytics.com", "https://www.googletagmanager.com",
         "https://i.etsystatic.com",  // Etsy product images
         "https://img.youtube.com", "https://i.ytimg.com"  // YouTube thumbnails
@@ -75,19 +67,10 @@ app.use(helmet({
       "media-src": ["'self'", "https://archive.org", "https://*.archive.org"],
       "connect-src": [
         "'self'", "https://archive.org", "https://*.archive.org",
-        "https://pagead2.googlesyndication.com", "https://adservice.google.com",
-        "https://tpc.googlesyndication.com",
         "https://www.google-analytics.com", "https://analytics.google.com",
         "https://region1.google-analytics.com"
       ],
-      "frame-src": [
-        "https://googleads.g.doubleclick.net",
-        "https://tpc.googlesyndication.com",
-        "https://www.google.com",
-        "https://ep1.adtrafficquality.google",
-        "https://ep2.adtrafficquality.google",
-        "https://www.youtube.com"  // YouTube video embeds
-      ],
+      "frame-src": ["'none'"],
       "frame-ancestors": ["'self'"]
     }
   }
@@ -145,6 +128,15 @@ async function initDatabase() {
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         FOREIGN KEY(user_id) REFERENCES users(id)
       )
+    `);
+
+    // Round details (nullable; older rows predate these)
+    await client.query(`
+      ALTER TABLE scores
+        ADD COLUMN IF NOT EXISTS song TEXT,
+        ADD COLUMN IF NOT EXISTS show_id TEXT,
+        ADD COLUMN IF NOT EXISTS show_title TEXT,
+        ADD COLUMN IF NOT EXISTS show_date TEXT
     `);
 
     console.log('Database schema initialized');
@@ -422,11 +414,21 @@ app.post('/api/score', async (req, res) => {
     return res.status(400).json({ error: 'score out of range' });
   }
 
+  const clip = (v, max) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
+  const showId = clip(req.body.showId, 200);
+  const round = {
+    song: clip(req.body.song, 200),
+    showId: showId && /^[A-Za-z0-9._\-]+$/.test(showId) ? showId : null,
+    showTitle: clip(req.body.showTitle, 300),
+    showDate: clip(req.body.showDate, 10),
+  };
+
   const userId = req.session.userId;
   try {
     await pool.query(
-      'INSERT INTO scores (user_id, points) VALUES ($1, $2)',
-      [userId, numericScore]
+      `INSERT INTO scores (user_id, points, song, show_id, show_title, show_date)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [userId, numericScore, round.song, round.showId, round.showTitle, round.showDate]
     );
   } catch (err) {
     console.error('/api/score insert failed:', err);
@@ -439,21 +441,43 @@ app.post('/api/score', async (req, res) => {
 app.get("/api/leaderboard", async (_req, res) => {
   try {
     const result = await pool.query(`
-      SELECT
-        COALESCE(u.display_name, u.username) AS name,
-        SUM(s.points) AS total_points,
-        COUNT(*) AS games
-      FROM scores s
-      JOIN users u ON u.id = s.user_id
-      GROUP BY s.user_id, u.display_name, u.username
-      ORDER BY total_points DESC, games DESC, name ASC
-      LIMIT 20
+      WITH totals AS (
+        SELECT
+          s.user_id,
+          COALESCE(u.display_name, u.username) AS name,
+          SUM(s.points) AS total_points,
+          COUNT(*) AS games,
+          -- created_at is a UTC timestamp without zone; label it so clients don't apply the server's offset
+          to_char(MAX(s.created_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_played
+        FROM scores s
+        JOIN users u ON u.id = s.user_id
+        GROUP BY s.user_id, u.display_name, u.username
+        ORDER BY total_points DESC, games DESC, name ASC
+        LIMIT 20
+      )
+      SELECT t.*, lc.song, lc.show_id, lc.show_title, lc.show_date
+      FROM totals t
+      LEFT JOIN LATERAL (
+        SELECT song, show_id, show_title, show_date
+        FROM scores
+        WHERE user_id = t.user_id AND points > 0 AND song IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) lc ON true
+      ORDER BY t.total_points DESC, t.games DESC, t.name ASC
     `);
 
     const leaderboard = result.rows.map(r => ({
       username: r.name,
       points: parseInt(r.total_points),
-      games: parseInt(r.games)
+      games: parseInt(r.games),
+      lastPlayed: r.last_played,
+      lastCorrect: r.song ? {
+        song: r.song,
+        showId: r.show_id,
+        showTitle: r.show_title,
+        showDate: r.show_date
+      } : null
     }));
     res.json({ leaderboard });
   } catch (err) {

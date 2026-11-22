@@ -61,7 +61,7 @@ console.log("jamAudio element:", jamAudio);
         body: `
           <div style="padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <a href="https://www.etsy.com/listing/4543534647/" target="_blank" rel="noopener noreferrer">
-              <img src="https://i.etsystatic.com/66949228/r/il/bf7790/8340127638/il_1588xN.8340127638_igwv.jpg" alt="Grateful Dead Tape Cover Poster" style="max-width:100%; max-height:300px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <img src="https://i.etsystatic.com/66949228/r/il/bf7790/8340127638/il_1588xN.8340127638_igwv.jpg" alt="Grateful Dead Tape Cover Poster" class="sponsor-img" style="max-width:100%; max-height:300px; object-fit:contain; border-radius:8px;">
             </a>
             <div style="margin-top:12px; text-align:center; font-size:13px; color:#666;">
               <a href="https://www.etsy.com/shop/MindLeftBodyStore" target="_blank" rel="noopener noreferrer" style="color:#2d6a4f; font-weight:600; text-decoration:none;">Shop on Etsy →</a>
@@ -74,7 +74,7 @@ console.log("jamAudio element:", jamAudio);
         body: `
           <div style="padding:12px 20px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <a href="https://www.youtube.com/@SearchlightGD/videos" target="_blank" rel="noopener noreferrer">
-              <img src="https://img.youtube.com/vi/y_lMfo6oO0A/sddefault.jpg" alt="Searchlight GD Latest Episode" style="max-width:100%; max-height:200px; object-fit:contain; border-radius:8px; transition:transform 0.2s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <img src="https://img.youtube.com/vi/y_lMfo6oO0A/sddefault.jpg" alt="Searchlight GD Latest Episode" class="sponsor-img" style="max-width:100%; max-height:200px; object-fit:contain; border-radius:8px;">
             </a>
             <div style="margin-top:12px; text-align:center; font-size:13px;">
               <div style="margin-bottom:8px;">
@@ -534,38 +534,6 @@ answerEl.style.display = "none";
 const answerPanel = document.querySelector('.answer-panel');
 if (answerPanel) answerPanel.style.display = "none";
 
-// ------- AdSense refresh logic
-function refreshAdUnit() {
-  // Get the ad container
-  const adContainer = document.getElementById('ad-right');
-  if (!adContainer) return;
-
-  // Remove existing ad
-  const existingAd = adContainer.querySelector('.adsbygoogle');
-  if (existingAd) {
-    existingAd.remove();
-  }
-
-  // Create new ad element
-  const newAd = document.createElement('ins');
-  newAd.className = 'adsbygoogle';
-  newAd.style.display = 'inline-block';
-  newAd.style.width = '300px';
-  newAd.style.height = '250px';
-  newAd.setAttribute('data-ad-client', 'ca-pub-5226913770398471');
-  newAd.setAttribute('data-ad-slot', '9360651477');
-
-  // Add new ad to container
-  adContainer.appendChild(newAd);
-
-  // Push to AdSense queue
-  try {
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (e) {
-    console.error('AdSense error:', e);
-  }
-}
-
 // ------- Core: load a random clip (stable)
 function loadRandomClip(trigger = 'play') {
   const myRound = ++round;
@@ -575,9 +543,6 @@ function loadRandomClip(trigger = 'play') {
     gtag('event', 'game_start', { trigger: trigger });
   }
   roundOver = false;                     // round is active again
-
-  // Refresh ad unit at start of new round
-  refreshAdUnit();
 
   setPlayState("loading");
   if (playAgainBtn) playAgainBtn.style.display = "none";
@@ -923,7 +888,13 @@ if (answerPanel) answerPanel.style.display = "block";
     fetch("/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ score: pts })
+      body: JSON.stringify({
+        score: pts,
+        song: trackName,
+        showId: current.identifier,
+        showTitle: showTitle,
+        showDate: current.date ? String(current.date).slice(0, 10) : ""
+      })
     }).then(() => {
       if (typeof window.refreshLeaderboard === "function") {
         window.refreshLeaderboard();
@@ -1199,11 +1170,4 @@ if (answerPanel) answerPanel.style.display = "block";
 
   // Initialize sponsor panels to show Etsy/YouTube
   rotateSponsorContent();
-
-  // Initialize first ad on page load
-  try {
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (e) {
-    console.error('Initial AdSense load error:', e);
-  }
 });
